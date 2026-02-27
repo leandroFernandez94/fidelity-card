@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "skills": {
+    "bun-development": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "2495ba6f5ade951aea79cd76303c29173edb5512fb4b4e896b2cf763b86af466"
+    },
+    "docker-expert": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "76bd52d934142cb8f3861cb37f2a39ad93bf3b03dcbc94a02beaa0544f6dd7c2"
+    },
+    "drizzle-migrations": {
+      "source": "bobmatnyc/claude-mpm-skills",
+      "sourceType": "github",
+      "computedHash": "c138a68ca6e28a5c8cb9bc370e5e0b6de9a9157b94a00ed2800181514fe72129"
+    },
+    "drizzle-orm": {
+      "source": "bobmatnyc/claude-mpm-skills",
+      "sourceType": "github",
+      "computedHash": "9aea7469d696c9b5fa54a84b7a92ea692872fb624fb028f866ab0f3deac84867"
+    },
+    "elysiajs": {
+      "source": "elysiajs/skills",
+      "sourceType": "github",
+      "computedHash": "55268e69a2c766ed67e56a0db57544f60cc52dba0c7f024a974baf965e525e1b"
+    },
+    "postgres-drizzle": {
+      "source": "ccheney/robust-skills",
+      "sourceType": "github",
+      "computedHash": "60534e1aa880981e26360db836115df77a8e73be219c7a027e635802686b5bd9"
+    },
+    "react-router-v7": {
+      "source": "existential-birds/beagle",
+      "sourceType": "github",
+      "computedHash": "194c9e7306024d5ff9f8c2327754d07675fe816870574faa93986f9bd59a830b"
+    },
+    "tailwind-design-system": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "d0e4d2ba5a99cdc6e264d3927d1d81e85e79f551c8e246fa0a86123217eaad94"
+    },
+    "typescript-react-reviewer": {
+      "source": "dotneet/claude-code-marketplace",
+      "sourceType": "github",
+      "computedHash": "7f86cd28e11d2b4b120b635d18814b82cd655a2b9d9ba8a105b3ee06c478cf38"
+    },
+    "vercel-react-best-practices": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "computedHash": "4365be772fd3b41994a72ad478472c6d680678e7f3859860ab010e9c46e48ee0"
+    },
+    "vite": {
+      "source": "antfu/skills",
+      "sourceType": "github",
+      "computedHash": "0293c251e4d6ff4818e8d2faed2a92f98d8d73c2f4819bd754faf93ca134d6fe"
+    }
+  }
+}
