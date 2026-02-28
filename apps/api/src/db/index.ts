@@ -1,7 +1,9 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 
-const databaseUrl = process.env.DATABASE_URL;
+const databaseUrl =
+  process.env.DATABASE_URL ??
+  (process.env.NODE_ENV === 'test' ? 'postgres://localhost:5432/postgres' : undefined);
 
 if (!databaseUrl) {
   throw new Error('DATABASE_URL is required (see .env.example)');

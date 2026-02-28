@@ -1,6 +1,14 @@
 import { del, get, patch, post } from './api';
 import type { Cita } from '../types';
 
+type CitaCreateInput = {
+  clienta_id?: string;
+  servicio_ids: string[];
+  fecha_hora: string;
+  puntos_ganados: number;
+  notas?: string;
+};
+
 export const citasService = {
   async getAll(): Promise<Cita[]> {
     return get<Cita[]>('/api/citas');
@@ -15,7 +23,7 @@ export const citasService = {
     return get<Cita[]>(`/api/citas?clienta_id=${clientaId}`);
   },
 
-  async create(cita: Omit<Cita, 'id' | 'created_at'>): Promise<Cita> {
+  async create(cita: CitaCreateInput): Promise<Cita> {
     return post<Cita>('/api/citas', cita);
   },
 
