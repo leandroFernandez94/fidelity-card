@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
-    "api:dev": "bun --watch apps/api/src/index.ts",
-    "api:start": "bun apps/api/src/index.ts",
+    "api:dev": "NODE_ENV=development dotenv -e .env -o -- bun --watch apps/api/src/index.ts",
+    "api:start": "NODE_ENV=development dotenv -e .env -o -- bun apps/api/src/index.ts",
     "db:generate": "dotenv -e .env.example -- drizzle-kit generate",
     "db:migrate": "dotenv -e .env.example -- drizzle-kit migrate",
     "db:smoke": "dotenv -e .env.example -- bun scripts/smoke-db.mjs",

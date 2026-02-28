@@ -8,6 +8,46 @@
 
 ---
 
+## [15] Admin UI: header reutilizable + logout
+**Estado:** todo
+**Descripción:** En la vista de admin, reutilizar la misma barra/header que se usa en la vista de clientas (mismo look & feel) e incluir el boton de logout para cerrar sesion desde admin.
+**Criterios de aceptacion:**
+- Admin muestra el mismo header que clientas (o un componente compartido) sin duplicar markup.
+- El header incluye un boton/link de logout visible en admin.
+- Al hacer logout, se limpia sesion y se redirige al login.
+**Comentarios:**
+
+---
+
+## [16] Admin UI: ocultar puntos disponibles
+**Estado:** todo
+**Descripción:** En la vista de admin no deben mostrarse puntos disponibles. Los puntos son un feature exclusivo para clientas.
+**Criterios de aceptacion:**
+- Ninguna pantalla/admin lista o muestra "puntos disponibles" ni widgets de puntos.
+- La vista de clienta sigue mostrando puntos normalmente.
+**Comentarios:**
+
+---
+
+## [17] Clienta: persistencia de sesion al recargar
+**Estado:** todo
+**Descripción:** En la vista de clienta la sesion no persiste: al recargar la pagina vuelve al login. Ajustar el frontend para que al cargar la app se rehidrate la sesion (usando `GET /api/auth/me` con cookie) y mantenga al usuario autenticado si corresponde.
+**Criterios de aceptacion:**
+- Si el usuario tiene cookie valida, al recargar permanece logueado y navega a la vista correcta.
+- Si la cookie expiro/no existe, se redirige a login de forma consistente.
+- No hay flashes largos/loops de redirect (manejo correcto de loading inicial).
+**Comentarios:**
+
+---
+
+## [18] Bug: /citas queda cargando
+**Estado:** done
+**Descripción:** La ruta `/citas` queda cargando y no hace nada. Identificar la causa (request colgada, error no renderizado, loader infinito o route guard) y corregirlo.
+**Criterios de aceptacion:**
+- `/citas` carga en un estado estable: muestra contenido o un empty state.
+- Los errores de red/API se muestran al usuario (o al menos se loguean) y no quedan spinners infinitos.
+**Comentarios:** Branch: bugfix-18-citas-queda-cargando. Completado: `MisCitas` ya no queda en loading infinito cuando no hay sesion/perfil o falla la API; redirige a `/login`, muestra error con boton Reintentar, y el cliente HTTP corta requests colgadas con timeout (15s) y error 408. Archivos: `src/pages/MisCitas.tsx`, `src/services/api.ts`. Validacion: smoke manual en dev (ver spinner -> datos/empty state; con API caida muestra error en vez de spinner infinito).
+
 ## [2] Backend scaffold: Bun + Elysia base
 **Estado:** done
 **Descripción:** (Refactor Supabase -> BE propio) Crear el proyecto de API en una carpeta dedicada (ej. `apps/api/`) usando Bun + Elysia. Agregar servidor con `GET /api/health`, manejo basico de errores, lectura de env (`PORT`, `NODE_ENV`).

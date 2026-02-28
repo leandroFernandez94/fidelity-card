@@ -8,8 +8,6 @@ import { toPublicUser } from '../domain/transformers/auth';
 import { toPublicProfile } from '../domain/transformers/profiles';
 import type { Rol, SigninBody, SignupBody } from '../domain/types/auth';
 
-import type { StatusHelper } from '../domain/types/http';
-
 import type { AuthContextOptions, AuthJwtPayload } from './auth-context';
 
 type AuthRoutesOptions = AuthContextOptions;
@@ -56,9 +54,25 @@ function isUniqueViolation(error: unknown): boolean {
 const defaultCookieName = 'auth';
 const defaultCookieMaxAgeSeconds = 7 * 86400;
 
+function shouldUseSecureCookie(nodeEnv: AuthContextOptions['nodeEnv']): boolean {
+  return nodeEnv === 'production';
+}
+
+function getCookieSecureAttribute(options: AuthRoutesOptions): boolean {
+  // In dev we often run over plain HTTP (LAN IP / Vite proxy). Secure cookies won't be stored.
+  return shouldUseSecureCookie(options.nodeEnv);
+}
+
+function getCookieSameSiteAttribute(options: AuthRoutesOptions): 'lax' | 'none' {
+  // Only use SameSite=None when we also use Secure (required by modern browsers).
+  return getCookieSecureAttribute(options) ? 'none' : 'lax';
+}
+
 export function createAuthHandlers(deps: AuthDeps, options: AuthRoutesOptions) {
   const cookieName = options.cookieName ?? defaultCookieName;
   const cookieMaxAgeSeconds = options.cookieMaxAgeSeconds ?? defaultCookieMaxAgeSeconds;
+  const cookieSecure = getCookieSecureAttribute(options);
+  const cookieSameSite = getCookieSameSiteAttribute(options);
 
   return {
     signup: async ({ body, jwt, cookie, set }: SignupCtx) => {
@@ -112,8 +126,8 @@ export function createAuthHandlers(deps: AuthDeps, options: AuthRoutesOptions) {
         cookieRecord[cookieName].set({
           value: token,
           httpOnly: true,
-          sameSite: 'lax',
-          secure: options.nodeEnv === 'production',
+          sameSite: cookieSameSite,
+          secure: cookieSecure,
           path: '/',
           maxAge: cookieMaxAgeSeconds,
         });
@@ -161,8 +175,8 @@ export function createAuthHandlers(deps: AuthDeps, options: AuthRoutesOptions) {
       cookieRecord[cookieName].set({
         value: token,
         httpOnly: true,
-        sameSite: 'lax',
-        secure: options.nodeEnv === 'production',
+        sameSite: cookieSameSite,
+        secure: cookieSecure,
         path: '/',
         maxAge: cookieMaxAgeSeconds,
       });
@@ -180,8 +194,8 @@ export function createAuthHandlers(deps: AuthDeps, options: AuthRoutesOptions) {
         cookieRecord[cookieName].set({
           value: '',
           httpOnly: true,
-          sameSite: 'lax',
-          secure: options.nodeEnv === 'production',
+          sameSite: cookieSameSite,
+          secure: cookieSecure,
           path: '/',
           maxAge: 0,
         });
@@ -235,7 +249,7 @@ export function registerAuthRoutes<App extends { post: unknown }>(app: App, opti
       handlers.signup,
       {
         body: t.Object({
-          email: t.String({ format: 'email' }),
+          email: t.String({ format: 'email', default: '' }),
           password: t.String({ minLength: 6 }),
           nombre: t.String({ minLength: 1 }),
           apellido: t.String({ minLength: 1 }),
@@ -248,7 +262,7 @@ export function registerAuthRoutes<App extends { post: unknown }>(app: App, opti
       handlers.signin,
       {
         body: t.Object({
-          email: t.String({ format: 'email' }),
+          email: t.String({ format: 'email', default: '' }),
           password: t.String({ minLength: 1 }),
         }),
       }

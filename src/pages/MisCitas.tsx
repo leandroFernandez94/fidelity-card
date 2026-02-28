@@ -1,36 +1,115 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { citasService } from '../services/citas';
 import type { Cita } from '../types';
-import { Card, CardHeader, CardTitle, CardContent } from '../components/Card';
+import { Card, CardContent } from '../components/Card';
 import { formatearFecha, formatearHora, getEstadoCitaColor, esFechaPasada } from '../utils';
 import { Calendar, Clock, AlertCircle, CheckCircle, XCircle, Clock as Pending } from 'lucide-react';
 
 export default function MisCitas() {
-  const { profile } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const [citas, setCitas] = useState<Cita[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
+    let active = true;
+
     async function loadCitas() {
-      if (!profile) return;
-      
+      if (authLoading) return;
+
+      if (!user || !profile) {
+        setError(null);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
       try {
         const data = await citasService.getByClienta(profile.id);
+        if (!active) return;
         setCitas(data);
       } catch (error) {
+        if (!active) return;
         console.error('Error al cargar citas:', error);
+        setError('No se pudieron cargar tus citas. Intenta nuevamente.');
       } finally {
-        setLoading(false);
+        if (active) {
+          setLoading(false);
+        }
       }
     }
+
     loadCitas();
-  }, [profile]);
+
+    return () => {
+      active = false;
+    };
+  }, [authLoading, user, profile, reloadKey]);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Mis Citas 📅</h1>
+            <p className="text-gray-600">Gestiona tus citas y recordatorios</p>
+          </div>
+
+          <Card>
+            <CardContent className="py-10 text-center">
+              <AlertCircle size={40} className="mx-auto text-red-500 mb-4" />
+              <p className="text-gray-900 font-medium">{error}</p>
+              <button
+                type="button"
+                className="mt-4 inline-flex items-center justify-center rounded-lg bg-primary text-white px-4 py-2 text-sm font-medium hover:bg-primary-light transition-colors"
+                onClick={() => setReloadKey((value) => value + 1)}
+              >
+                Reintentar
+              </button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || !profile) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Mis Citas 📅</h1>
+            <p className="text-gray-600">Gestiona tus citas y recordatorios</p>
+          </div>
+
+          <Card>
+            <CardContent className="py-10 text-center">
+              <AlertCircle size={40} className="mx-auto text-gray-500 mb-4" />
+              <p className="text-gray-900 font-medium">Necesitas iniciar sesion para ver tus citas.</p>
+              <button
+                type="button"
+                className="mt-4 inline-flex items-center justify-center rounded-lg bg-primary text-white px-4 py-2 text-sm font-medium hover:bg-primary-light transition-colors"
+                onClick={() => navigate('/login')}
+              >
+                Ir al login
+              </button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }

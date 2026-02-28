@@ -1,6 +1,6 @@
 import { Elysia } from 'elysia';
 
-import { authContextModule, requireAdmin, requireAuth } from './modules/auth-context';
+import { authContextModule } from './modules/auth-context';
 import { registerAuthRoutes } from './modules/auth';
 import { registerServiciosRoutes } from './modules/servicios';
 import { registerCitasRoutes } from './modules/citas';
@@ -44,6 +44,11 @@ const authOptions = {
 
 const app = new Elysia()
   .onError(({ code, error, set }) => {
+    if (code === 'VALIDATION') {
+      set.status = 422;
+      return { error: 'validation_error' };
+    }
+
     if (env.NODE_ENV !== 'test') {
       console.error(`[api] error code=${code}`, error);
     }
@@ -55,10 +60,6 @@ const app = new Elysia()
   })
   .use(authContextModule(authOptions))
   .get('/api/health', () => ({ ok: true }))
-  .get('/api/_protected', ({ auth, status }) => {
-    if (!auth) return status(401, { error: 'unauthorized' });
-    return { ok: true, sub: auth.sub, rol: auth.rol };
-  })
   .get('/api/_admin', ({ auth, status }) => {
     if (!auth) return status(401, { error: 'unauthorized' });
     if (auth.rol !== 'admin') return status(403, { error: 'forbidden' });
@@ -74,6 +75,5 @@ registerReferidosRoutes(app);
 app.listen(env.PORT);
 
 if (env.NODE_ENV !== 'test') {
-  // eslint-disable-next-line no-console
   console.log(`[api] listening on http://localhost:${app.server?.port}`);
 }
