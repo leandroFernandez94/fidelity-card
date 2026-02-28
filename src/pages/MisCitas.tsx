@@ -5,15 +5,17 @@ import { citasService } from '../services/citas';
 import type { Cita } from '../types';
 import { Card, CardContent } from '../components/Card';
 import { formatearFecha, formatearHora, getEstadoCitaColor, esFechaPasada } from '../utils';
+import { ApiError } from '../services/api';
 import { Calendar, Clock, AlertCircle, CheckCircle, XCircle, Clock as Pending } from 'lucide-react';
 
 export default function MisCitas() {
-  const { user, profile, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [citas, setCitas] = useState<Cita[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -117,6 +119,40 @@ export default function MisCitas() {
   const proximasCitas = citas.filter(cita => !esFechaPasada(cita.fecha_hora));
   const citasPasadas = citas.filter(cita => esFechaPasada(cita.fecha_hora));
 
+  async function actualizarEstado(citaId: string, nuevoEstado: Cita['estado']) {
+    try {
+      setUpdatingId(citaId);
+      await citasService.update(citaId, { estado: nuevoEstado });
+      await refreshProfile();
+      setReloadKey((value) => value + 1);
+    } catch (error) {
+      console.error('Error al actualizar cita:', error);
+      if (error instanceof ApiError) {
+        const details = error.details;
+        const code = typeof details === 'object' && details !== null
+          ? (details as Record<string, unknown>).error
+          : null;
+
+        if (code === 'final_state') {
+          setError('La cita ya esta finalizada y no se puede modificar.');
+          return;
+        }
+        if (code === 'no_state_change') {
+          setError('La cita ya esta en ese estado.');
+          return;
+        }
+        if (code === 'forbidden_transition') {
+          setError('No podes cambiar el estado desde la situacion actual.');
+          return;
+        }
+      }
+
+      setError('No se pudo actualizar la cita. Intenta nuevamente.');
+    } finally {
+      setUpdatingId((current) => (current === citaId ? null : current));
+    }
+  }
+
   function getEstadoIcon(estado: string) {
     switch (estado) {
       case 'confirmada':
@@ -204,6 +240,29 @@ export default function MisCitas() {
                             <p className="mt-3 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
                               {cita.notas}
                             </p>
+                          )}
+
+                          {cita.estado === 'pendiente' && (
+                            <div className="mt-4 flex flex-wrap gap-2">
+                              <button
+                                type="button"
+                                disabled={updatingId === cita.id}
+                                onClick={() => actualizarEstado(cita.id, 'confirmada')}
+                                className="inline-flex items-center justify-center rounded-lg bg-secondary text-white px-4 py-2 text-sm font-medium hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                              >
+                                <CheckCircle size={16} className="mr-2" />
+                                Confirmar
+                              </button>
+                              <button
+                                type="button"
+                                disabled={updatingId === cita.id}
+                                onClick={() => actualizarEstado(cita.id, 'cancelada')}
+                                className="inline-flex items-center justify-center rounded-lg bg-red-600 text-white px-4 py-2 text-sm font-medium hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                              >
+                                <XCircle size={16} className="mr-2" />
+                                Cancelar
+                              </button>
+                            </div>
                           )}
                         </div>
 
