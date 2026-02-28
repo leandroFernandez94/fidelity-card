@@ -56,7 +56,7 @@
 ---
 
 ## [5] API de negocio: servicios
-**Estado:** todo
+**Estado:** done
 **Descripción:** (Refactor FE -> API) Reemplazar el acceso directo a Supabase para `servicios` por endpoints del BE: `GET /api/servicios` (publico) y `POST/PATCH/DELETE /api/servicios/:id` (admin) conectados a Drizzle.
 **Contexto:** Hoy `src/services/servicios.ts` hace CRUD en Supabase y las pantallas admin dependen de ese shape.
 **Entregables:** handlers Elysia + queries Drizzle + validacion input.
@@ -64,7 +64,7 @@
 - `GET /api/servicios` devuelve lista ordenada por `nombre`.
 - Admin puede crear/editar/borrar; no-admin recibe `403`.
 - Payloads compat con `Servicio` (`src/types/index.ts`).
-**Comentarios:**
+**Comentarios:** Branch: feature-5-api-servicios. Completado: agregue endpoints `GET /api/servicios` (publico) y `POST/PATCH/DELETE /api/servicios/:id` (admin) usando Drizzle. `GET` ordena por `nombre`, validacion de body con `t.Object`, 403 para no-admin. Refactor: extraigo callbacks de endpoints a handlers aislados (factory `create*Handlers`) para testearlos sin levantar el server. Archivos: `apps/api/src/modules/servicios.ts`, `apps/api/src/modules/auth-context.ts`, `apps/api/src/modules/auth.ts`, `apps/api/src/utils/iso.ts`, `apps/api/src/index.ts`. Validacion: `npm run typecheck` en `apps/api/` OK. Nota entorno: Bun no esta instalado aqui, por eso use `npm` para typecheck; se genero `apps/api/package-lock.json`.
 
 ---
 
