@@ -1,22 +1,12 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { get, post, isUnauthorized, ApiError } from '../services/api';
-import type { Profile } from '../types';
 import type { ReactNode } from 'react';
 
-type AuthUser = {
-  id: string;
-  email: string;
-  created_at: string;
-};
-
-type AuthPayload = {
-  user: AuthUser;
-  profile: Profile;
-};
+import type { AuthPayload, AuthUser } from './authTypes';
 
 interface AuthContextType {
   user: AuthUser | null;
-  profile: Profile | null;
+  profile: AuthPayload['profile'] | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (
@@ -34,7 +24,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState<AuthPayload['profile'] | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -72,13 +62,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(payload.profile);
   }
 
-  function resolveErrorMessage(error: unknown, fallback: string) {
-    if (error instanceof ApiError) {
-      return error.message || fallback;
-    }
-    return fallback;
-  }
-
   async function signIn(email: string, password: string) {
     try {
       const data = await post<AuthPayload>('/api/auth/signin', { email, password });
@@ -89,7 +72,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: 'unauthorized' };
       }
 
-      return { error: resolveErrorMessage(error, 'signin_failed') };
+      if (error instanceof ApiError) {
+        return { error: error.message || 'signin_failed' };
+      }
+      return { error: 'signin_failed' };
     }
   }
 
@@ -105,7 +91,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       applyAuthPayload(data);
       return { error: null };
     } catch (error) {
-      return { error: resolveErrorMessage(error, 'signup_failed') };
+      if (error instanceof ApiError) {
+        return { error: error.message || 'signup_failed' };
+      }
+      return { error: 'signup_failed' };
     }
   }
 

@@ -1,4 +1,5 @@
 import { t } from 'elysia';
+import type { AnyElysia } from 'elysia';
 import { desc, eq } from 'drizzle-orm';
 
 import { db as defaultDb } from '../db';
@@ -30,29 +31,30 @@ export type ProfilesDeps = {
 };
 
 export type ProfilesListCtx = {
-  auth: unknown;
+  auth?: unknown;
   status: StatusHelper;
   query: ProfileQuery;
 };
 
 export type ProfileGetCtx = {
-  auth: unknown;
+  auth?: unknown;
   status: StatusHelper;
   params: ProfileIdParams;
-  set: { status: number };
+  set: { status?: number | string };
 };
 
 export type ProfilePatchCtx = {
-  auth: unknown;
+  auth?: unknown;
   status: StatusHelper;
   params: ProfileIdParams;
   body: ProfilePatchBody;
-  set: { status: number };
+  set: { status?: number | string };
 };
 
 export function createProfilesHandlers(deps: ProfilesDeps) {
   return {
-    list: async ({ auth, status, query }: ProfilesListCtx) => {
+    list: async (ctx: unknown) => {
+      const { auth, status, query } = ctx as ProfilesListCtx;
       const jwt = ((auth as unknown) ?? null) as AuthJwtPayload | null;
       const denied = requireAdmin({ auth: jwt, status });
       if (denied) return denied;
@@ -69,7 +71,8 @@ export function createProfilesHandlers(deps: ProfilesDeps) {
       const rows = await deps.db.select().from(profiles).orderBy(desc(profiles.created_at));
       return rows.map(toPublicProfile);
     },
-    get: async ({ auth, status, params, set }: ProfileGetCtx) => {
+    get: async (ctx: unknown) => {
+      const { auth, status, params, set } = ctx as ProfileGetCtx;
       const jwt = ((auth as unknown) ?? null) as AuthJwtPayload | null;
       const denied = requireAuth({ auth: jwt, status });
       if (denied) return denied;
@@ -88,7 +91,8 @@ export function createProfilesHandlers(deps: ProfilesDeps) {
 
       return toPublicProfile(row);
     },
-    patch: async ({ auth, status, params, body, set }: ProfilePatchCtx) => {
+    patch: async (ctx: unknown) => {
+      const { auth, status, params, body, set } = ctx as ProfilePatchCtx;
       const jwt = ((auth as unknown) ?? null) as AuthJwtPayload | null;
       const denied = requireAuth({ auth: jwt, status });
       if (denied) return denied;
@@ -122,10 +126,10 @@ export function createProfilesHandlers(deps: ProfilesDeps) {
   };
 }
 
-export function registerProfilesRoutes<App extends { get: unknown; patch: unknown }>(app: App): App {
+export function registerProfilesRoutes(app: AnyElysia) {
   const handlers = createProfilesHandlers({ db: defaultDb });
 
-  return (app as any)
+  return app
     .get(
       '/api/profiles',
       handlers.list,

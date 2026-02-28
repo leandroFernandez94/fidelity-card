@@ -1,4 +1,5 @@
 import { t } from 'elysia';
+import type { AnyElysia } from 'elysia';
 import bcrypt from 'bcryptjs';
 import { eq } from 'drizzle-orm';
 
@@ -22,16 +23,16 @@ export type AuthDeps = {
 
 export type SignupCtx = {
   body: SignupBody;
-  jwt: { sign: (payload: { sub: string; rol: Rol }) => Promise<string> };
+  jwt?: { sign: (payload: { sub: string; rol: Rol }) => Promise<string> };
   cookie: unknown;
-  set: { status: number };
+  set: { status?: number | string };
 };
 
 export type SigninCtx = {
   body: SigninBody;
-  jwt: { sign: (payload: { sub: string; rol: Rol }) => Promise<string> };
+  jwt?: { sign: (payload: { sub: string; rol: Rol }) => Promise<string> };
   cookie: unknown;
-  set: { status: number };
+  set: { status?: number | string };
 };
 
 export type SignoutCtx = {
@@ -39,8 +40,8 @@ export type SignoutCtx = {
 };
 
 export type MeCtx = {
-  auth: AuthJwtPayload | null;
-  set: { status: number };
+  auth?: AuthJwtPayload | null;
+  set: { status?: number | string };
 };
 
 function normalizeEmail(emailRaw: string): string {
@@ -75,7 +76,13 @@ export function createAuthHandlers(deps: AuthDeps, options: AuthRoutesOptions) {
   const cookieSameSite = getCookieSameSiteAttribute(options);
 
   return {
-    signup: async ({ body, jwt, cookie, set }: SignupCtx) => {
+    signup: async (ctx: unknown) => {
+      const { body, jwt, cookie, set } = ctx as SignupCtx;
+      if (!jwt) {
+        set.status = 500;
+        return { error: 'jwt_not_configured' };
+      }
+
       const email = normalizeEmail(body.email);
       const password = body.password;
       const nombre = body.nombre.trim();
@@ -146,7 +153,13 @@ export function createAuthHandlers(deps: AuthDeps, options: AuthRoutesOptions) {
         throw error;
       }
     },
-    signin: async ({ body, jwt, cookie, set }: SigninCtx) => {
+    signin: async (ctx: unknown) => {
+      const { body, jwt, cookie, set } = ctx as SigninCtx;
+      if (!jwt) {
+        set.status = 500;
+        return { error: 'jwt_not_configured' };
+      }
+
       const email = normalizeEmail(body.email);
 
       const foundUsers = await deps.db.select().from(users).where(eq(users.email, email)).limit(1);
@@ -186,7 +199,8 @@ export function createAuthHandlers(deps: AuthDeps, options: AuthRoutesOptions) {
         profile: toPublicProfile(profileRow),
       };
     },
-    signout: ({ cookie }: SignoutCtx) => {
+    signout: (ctx: unknown) => {
+      const { cookie } = ctx as SignoutCtx;
       const cookieRecord = cookie as Record<string, { remove: () => void; set: (opts: Record<string, unknown>) => void }>;
 
       if (cookieRecord[cookieName]) {
@@ -203,7 +217,8 @@ export function createAuthHandlers(deps: AuthDeps, options: AuthRoutesOptions) {
 
       return { ok: true };
     },
-    me: async ({ auth, set }: MeCtx) => {
+    me: async (ctx: unknown) => {
+      const { auth, set } = ctx as MeCtx;
       if (!auth) {
         set.status = 401;
         return { error: 'unauthorized' };
@@ -231,7 +246,7 @@ export function createAuthHandlers(deps: AuthDeps, options: AuthRoutesOptions) {
   };
 }
 
-export function registerAuthRoutes<App extends { post: unknown }>(app: App, options: AuthRoutesOptions): App {
+export function registerAuthRoutes(app: AnyElysia, options: AuthRoutesOptions) {
   const handlers = createAuthHandlers(
     {
       db,
@@ -243,7 +258,7 @@ export function registerAuthRoutes<App extends { post: unknown }>(app: App, opti
     options
   );
 
-  return (app as any)
+  return app
     .post(
       '/api/auth/signup',
       handlers.signup,

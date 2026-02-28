@@ -23,16 +23,16 @@ export type ReferidosDeps = {
 };
 
 export type ReferidosListCtx = {
-  auth: unknown;
+  auth?: unknown;
   status: StatusHelper;
   query: ReferidosQuery;
 };
 
 export type ReferidosCreateCtx = {
-  auth: unknown;
+  auth?: unknown;
   status: StatusHelper;
   body: ReferidosCreateBody;
-  set: { status: number };
+  set: { status?: number | string };
 };
 
 export type PuntosTopQuery = {
@@ -40,7 +40,7 @@ export type PuntosTopQuery = {
 };
 
 export type PuntosTopCtx = {
-  auth: unknown;
+  auth?: unknown;
   status: StatusHelper;
   query: PuntosTopQuery;
 };
@@ -51,15 +51,16 @@ export type PuntosAdjustBody = {
 };
 
 export type PuntosAdjustCtx = {
-  auth: unknown;
+  auth?: unknown;
   status: StatusHelper;
   body: PuntosAdjustBody;
-  set: { status: number };
+  set: { status?: number | string };
 };
 
 export function createReferidosHandlers(deps: ReferidosDeps) {
   return {
-    list: async ({ auth, status, query }: ReferidosListCtx) => {
+    list: async (ctx: unknown) => {
+      const { auth, status, query } = ctx as ReferidosListCtx;
       const jwt = ((auth as unknown) ?? null) as AuthJwtPayload | null;
       const denied = requireAuth({ auth: jwt, status });
       if (denied) return denied;
@@ -84,7 +85,8 @@ export function createReferidosHandlers(deps: ReferidosDeps) {
         .orderBy(desc(referidos.fecha));
       return rows.map(toPublicReferido);
     },
-    create: async ({ auth, status, body, set }: ReferidosCreateCtx) => {
+    create: async (ctx: unknown) => {
+      const { auth, status, body, set } = ctx as ReferidosCreateCtx;
       const jwt = ((auth as unknown) ?? null) as AuthJwtPayload | null;
       const denied = requireAdmin({ auth: jwt, status });
       if (denied) return denied;
@@ -147,7 +149,8 @@ export function createReferidosHandlers(deps: ReferidosDeps) {
       set.status = 201;
       return toPublicReferido(referidoRow);
     },
-    puntosTop: async ({ auth, status, query }: PuntosTopCtx) => {
+    puntosTop: async (ctx: unknown) => {
+      const { auth, status, query } = ctx as PuntosTopCtx;
       const jwt = ((auth as unknown) ?? null) as AuthJwtPayload | null;
       const denied = requireAuth({ auth: jwt, status });
       if (denied) return denied;
@@ -163,7 +166,8 @@ export function createReferidosHandlers(deps: ReferidosDeps) {
 
       return rows.map(toPublicProfile);
     },
-    sumarPuntos: async ({ auth, status, body, set }: PuntosAdjustCtx) => {
+    sumarPuntos: async (ctx: unknown) => {
+      const { auth, status, body, set } = ctx as PuntosAdjustCtx;
       const jwt = ((auth as unknown) ?? null) as AuthJwtPayload | null;
       const denied = requireAdmin({ auth: jwt, status });
       if (denied) return denied;
@@ -185,7 +189,8 @@ export function createReferidosHandlers(deps: ReferidosDeps) {
 
       return toPublicProfile(row);
     },
-    restarPuntos: async ({ auth, status, body, set }: PuntosAdjustCtx) => {
+    restarPuntos: async (ctx: unknown) => {
+      const { auth, status, body, set } = ctx as PuntosAdjustCtx;
       const jwt = ((auth as unknown) ?? null) as AuthJwtPayload | null;
       const denied = requireAdmin({ auth: jwt, status });
       if (denied) return denied;

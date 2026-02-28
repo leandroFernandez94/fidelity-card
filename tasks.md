@@ -9,13 +9,14 @@
 ---
 
 ## [15] Admin UI: header reutilizable + logout
-**Estado:** todo
+**Estado:** cancelled
 **Descripción:** En la vista de admin, reutilizar la misma barra/header que se usa en la vista de clientas (mismo look & feel) e incluir el boton de logout para cerrar sesion desde admin.
 **Criterios de aceptacion:**
 - Admin muestra el mismo header que clientas (o un componente compartido) sin duplicar markup.
 - El header incluye un boton/link de logout visible en admin.
 - Al hacer logout, se limpia sesion y se redirige al login.
 **Comentarios:**
+Cancelado: no hace falta implementar header compartido en admin por ahora.
 
 ---
 
@@ -208,10 +209,10 @@ Validacion: `bun run build` OK.
 ---
 
 ## [14] Docs: guia MVP para levantar FE+API+DB
-**Estado:** todo
+**Estado:** done
 **Descripción:** (Refactor Supabase -> BE propio) Crear/actualizar doc (ej. `DEV.md`) con pasos para levantar Postgres (docker), correr migraciones (drizzle), correr API (bun/elysia) y correr FE (vite + proxy /api). Incluir variables de entorno de ejemplo.
 **Entregables:** doc con comandos copy/paste + variables minimas.
 **Criterios de aceptacion:** un dev nuevo puede levantar todo en <10 minutos siguiendo la guia.
-**Comentarios:**
+**Comentarios:** Completado: agregue `DEV.md` con pasos para levantar Postgres (docker), correr migraciones (drizzle), levantar API y frontend con proxy `/api`. Validacion: `bun run build` OK, tests API (`cd apps/api && npm test`) OK. Nota: `bun run lint` falla por issues preexistentes en el repo (incluye `.agents/skills/*`, `investigate.cjs`, y lint rules en algunos modulos).
 
 ---
