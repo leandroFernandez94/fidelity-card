@@ -3,9 +3,9 @@ import { useAuth } from '../../contexts/AuthContext';
 import { citasService } from '../../services/citas';
 import { profilesService } from '../../services/profiles';
 import { puntosService } from '../../services/puntos';
-import type { Cita, Profile } from '../../types';
+import type { Cita } from '../../types';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/Card';
-import { Users, Calendar, Gift, TrendingUp, Clock, CheckCircle } from 'lucide-react';
+import { Users, Calendar, Clock, CheckCircle } from 'lucide-react';
 import { formatearFecha } from '../../utils';
 
 export default function AdminDashboard() {
@@ -16,8 +16,7 @@ export default function AdminDashboard() {
     totalCitas: 0,
     citasHoy: 0,
     citasPendientes: 0,
-    puntosOtorgados: 0,
-    topClientas: [] as Profile[]
+    topClientas: [] as Array<{ id: string; nombre: string; apellido: string; email: string; puntos: number }>
   });
   const [proximasCitas, setProximasCitas] = useState<Cita[]>([]);
 
@@ -39,14 +38,11 @@ export default function AdminDashboard() {
         );
         const proximas = citasPendientes.slice(0, 5);
 
-        const totalPuntos = clientas.reduce((total, clienta) => total + (clienta.puntos || 0), 0);
-
         setEstadisticas({
           totalClientas: clientas.length,
           totalCitas: citas.length,
           citasHoy: citasDeHoy.length,
           citasPendientes: citasPendientes.length,
-          puntosOtorgados: totalPuntos,
           topClientas: top
         });
         setProximasCitas(proximas);
@@ -79,7 +75,7 @@ export default function AdminDashboard() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatCard
             icon={<Users size={24} className="text-primary" />}
             label="Total Clientas"
@@ -99,13 +95,7 @@ export default function AdminDashboard() {
             color="accent"
           />
           <StatCard
-            icon={<Gift size={24} className="text-green-600" />}
-            label="Puntos Totales"
-            value={estadisticas.puntosOtorgados}
-            color="green"
-          />
-          <StatCard
-            icon={<TrendingUp size={24} className="text-blue-600" />}
+            icon={<CheckCircle size={24} className="text-blue-600" />}
             label="Total Citas"
             value={estadisticas.totalCitas}
             color="blue"
@@ -162,7 +152,7 @@ export default function AdminDashboard() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <TrendingUp size={24} className="text-accent" />
+                <Users size={24} className="text-accent" />
                 Top Clientas
               </CardTitle>
             </CardHeader>
@@ -196,15 +186,11 @@ export default function AdminDashboard() {
                           <div className="font-medium text-gray-900">
                             {clienta.nombre} {clienta.apellido}
                           </div>
-                          <div className="text-sm text-gray-500">
-                            {clienta.email}
-                          </div>
+                          <div className="text-sm text-gray-500">{clienta.email}</div>
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="font-bold text-primary">
-                          {clienta.puntos} pts
-                        </div>
+                        <div className="font-bold text-primary">{clienta.puntos} pts</div>
                       </div>
                     </div>
                   ))}
@@ -233,7 +219,6 @@ function StatCard({
     primary: 'bg-primary/10',
     secondary: 'bg-secondary/10',
     accent: 'bg-accent/10',
-    green: 'bg-green-100',
     blue: 'bg-blue-100'
   };
 
