@@ -1,9 +1,9 @@
 import { t } from 'elysia';
 import type { AnyElysia } from 'elysia';
-import { asc, eq, gte, inArray } from 'drizzle-orm';
+import { and, asc, eq, gte, inArray, sql } from 'drizzle-orm';
 
 import { db as defaultDb } from '../db';
-import { citas } from '../db/schema';
+import { citas, profiles } from '../db/schema';
 import { toPublicCita } from '../domain/transformers/citas';
 import type { StatusHelper } from '../domain/types/http';
 import type { CitaEstado } from '../domain/types/citas';
@@ -11,6 +11,7 @@ import type { CitaEstado } from '../domain/types/citas';
 import { requireAuth, requireAdmin } from './auth-context';
 import type { AuthJwtPayload } from './auth-context';
 
+import { decideCitaPatch } from '../domain/logic/citas';
 export type CitaCreateBody = {
   clienta_id: string;
   servicio_ids: string[];
@@ -178,33 +179,87 @@ export function createCitasHandlers(deps: CitasDeps) {
         return { error: 'forbidden' };
       }
 
-      const updates: { estado?: typeof validEstados[number]; notas?: string } = {};
-
-      if (body.estado !== undefined) {
-        if (!validEstados.includes(body.estado)) {
-          set.status = 400;
-          return { error: 'invalid_estado' };
-        }
-        updates.estado = body.estado;
+      if (body.estado !== undefined && !validEstados.includes(body.estado)) {
+        set.status = 400;
+        return { error: 'invalid_estado' };
       }
 
-      if (body.notas !== undefined) {
-        updates.notas = body.notas;
+      const decision = decideCitaPatch({
+        actorRole: jwt?.rol === 'admin' ? 'admin' : 'clienta',
+        currentEstado: cita.estado,
+        intent: {
+          estado: body.estado,
+          notas: body.notas,
+        },
+      });
+
+      if (!decision.ok) {
+        set.status = 403;
+        const code =
+          decision.error === 'final_state'
+            ? 'final_state'
+            : decision.error === 'no_state_change'
+              ? 'no_state_change'
+              : decision.error === 'forbidden_notas'
+                ? 'forbidden_notas'
+                : 'forbidden_transition';
+        return { error: code };
       }
 
-      if (Object.keys(updates).length === 0) {
+      if (!decision.nextEstado && body.notas === undefined) {
         set.status = 400;
         return { error: 'no_updates' };
       }
 
-      const updated = await deps.db.update(citas).set(updates).where(eq(citas.id, params.id)).returning();
-      const row = updated[0];
-      if (!row) {
-        set.status = 404;
-        return { error: 'not_found' };
+      if (!decision.allowNotas && body.notas !== undefined) {
+        set.status = 403;
+        return { error: 'forbidden_notas' };
       }
 
-      return toPublicCita(row);
+      const nextNotas = decision.allowNotas ? body.notas : undefined;
+      const nextEstado = decision.nextEstado;
+
+      const patched = await deps.db.transaction(async (tx) => {
+        if (decision.awardPoints && nextEstado === 'completada') {
+          // Atomic award: only award once, only when transitioning to completada.
+          const updatedCita = await tx
+            .update(citas)
+            .set({
+              estado: nextEstado,
+              ...(nextNotas !== undefined ? { notas: nextNotas } : {}),
+            })
+            .where(and(eq(citas.id, params.id), inArray(citas.estado, ['pendiente', 'confirmada'])))
+            .returning();
+
+          const row = updatedCita[0];
+          if (!row) {
+            return null;
+          }
+
+          await tx
+            .update(profiles)
+            .set({
+              puntos: sql<number>`${profiles.puntos} + ${row.puntos_ganados}`,
+            })
+            .where(eq(profiles.id, row.clienta_id));
+
+          return row;
+        }
+
+        const updates: { estado?: typeof validEstados[number]; notas?: string } = {};
+        if (nextEstado) updates.estado = nextEstado;
+        if (nextNotas !== undefined) updates.notas = nextNotas;
+
+        const updated = await tx.update(citas).set(updates).where(eq(citas.id, params.id)).returning();
+        return updated[0] ?? null;
+      });
+
+      if (!patched) {
+        set.status = 409;
+        return { error: 'conflict' };
+      }
+
+      return toPublicCita(patched);
     },
     remove: async (ctx: unknown) => {
       const { auth, status, params, set } = ctx as CitaDeleteCtx;
