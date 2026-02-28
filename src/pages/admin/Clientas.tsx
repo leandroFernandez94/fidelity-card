@@ -4,7 +4,7 @@ import type { Profile } from '../../types';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
-import { Search, Edit, Eye, User, Mail, Phone, Gift, Calendar, TrendingUp } from 'lucide-react';
+import { Search, Edit, Eye, User, Mail, Phone, Gift, Users } from 'lucide-react';
 import { formatearFecha } from '../../utils';
 
 export default function AdminClientas() {
@@ -136,9 +136,7 @@ export default function AdminClientas() {
                         <td className="py-4 px-4">
                           <div className="flex items-center gap-2">
                             <Gift size={16} className="text-primary" />
-                            <span className="font-bold text-primary">
-                              {clienta.puntos} pts
-                            </span>
+                            <span className="font-bold text-primary">{clienta.puntos} pts</span>
                           </div>
                         </td>
                         <td className="py-4 px-4 text-sm text-gray-600">
@@ -210,9 +208,7 @@ export default function AdminClientas() {
                     </h3>
                     <div className="bg-gradient-to-br from-pink-50 to-purple-50 p-6 rounded-lg mb-4">
                       <div className="text-center">
-                        <div className="text-5xl font-bold text-primary mb-2">
-                          {selectedClienta.puntos}
-                        </div>
+                        <div className="text-5xl font-bold text-primary mb-2">{selectedClienta.puntos}</div>
                         <div className="text-gray-600">Puntos Acumulados</div>
                       </div>
                     </div>
@@ -220,9 +216,7 @@ export default function AdminClientas() {
                     <div className="space-y-2 text-sm">
                       <div className="flex items-center justify-between">
                         <span className="text-gray-600">Fecha de Registro</span>
-                        <span className="font-medium">
-                          {formatearFecha(selectedClienta.created_at)}
-                        </span>
+                        <span className="font-medium">{formatearFecha(selectedClienta.created_at)}</span>
                       </div>
                     </div>
                   </div>

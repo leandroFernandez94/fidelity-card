@@ -20,12 +20,18 @@
 ---
 
 ## [16] Admin UI: ocultar puntos disponibles
-**Estado:** todo
+**Estado:** done
 **Descripción:** En la vista de admin no deben mostrarse puntos disponibles. Los puntos son un feature exclusivo para clientas.
 **Criterios de aceptacion:**
 - Ninguna pantalla/admin lista o muestra "puntos disponibles" ni widgets de puntos.
 - La vista de clienta sigue mostrando puntos normalmente.
 **Comentarios:**
+
+Branch: maintenance-16-ocultar-puntos-admin
+
+Completado: se removio del dashboard admin la estadistica de puntos otorgados (y se mantuvo el resto).
+
+Validacion: `bun run build` OK.
 
 ---
 
