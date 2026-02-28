@@ -67,7 +67,7 @@ La guía completa de configuración de Supabase está disponible en:
 1. Clonar el repositorio
 2. Instalar dependencias:
 ```bash
-npm install
+bun install
 ```
 
 3. Configurar Supabase (ver [SETUP_SUPABASE.md](./SETUP_SUPABASE.md)):
@@ -77,7 +77,7 @@ npm install
 
 4. Iniciar servidor de desarrollo:
 ```bash
-npm run dev
+bun run dev
 ```
 
 ## 🗄️ Estructura SQL del Proyecto
@@ -134,16 +134,16 @@ citas (1) ─── (N) recordatorios
 
 ```bash
 # Desarrollo
-npm run dev
+bun run dev
 
 # Build de producción
-npm run build
+bun run build
 
 # Preview del build
-npm run preview
+bun run preview
 
 # Lint
-npm run lint
+bun run lint
 ```
 
 ## 📁 Estructura del Proyecto

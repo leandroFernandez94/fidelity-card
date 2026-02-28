@@ -4,11 +4,11 @@ Guia para agentes de codigo en este repositorio. Resume comandos, estilo y regla
 
 ## Comandos principales
 
-- Instalar dependencias: `npm install`
-- Desarrollo (Vite): `npm run dev`
-- Build de produccion: `npm run build`
-- Preview build: `npm run preview`
-- Lint: `npm run lint`
+- Instalar dependencias: `bun install`
+- Desarrollo (Vite): `bun run dev`
+- Build de produccion: `bun run build`
+- Preview build: `bun run preview`
+- Lint: `bun run lint`
 
 ## Tests
 
@@ -157,7 +157,7 @@ Guia para agentes de codigo en este repositorio. Resume comandos, estilo y regla
 
 ## Notas de operacion
 
-- Usar `npm run dev` para verificar UI.
+- Usar `bun run dev` para verificar UI.
 - Si cambias `.env`, reinicia Vite.
 - Preferir cambios pequenos y atomicos.
 - Mantener consistencia con archivos ya existentes.
