@@ -1,0 +1,301 @@
+import { Elysia, t } from 'elysia';
+import { jwt } from '@elysiajs/jwt';
+import bcrypt from 'bcryptjs';
+import { eq } from 'drizzle-orm';
+
+import { db } from '../db';
+import { profiles, users } from '../db/schema';
+
+type Rol = 'admin' | 'clienta';
+
+type AuthJwtPayload = {
+  sub: string;
+  rol: Rol;
+  iat?: number;
+  exp?: number;
+};
+
+type AuthModuleOptions = {
+  jwtSecret: string;
+  nodeEnv: 'development' | 'test' | 'production';
+  cookieName?: string;
+  cookieMaxAgeSeconds?: number;
+};
+
+type PublicUser = {
+  id: string;
+  email: string;
+  created_at: string;
+};
+
+type PublicProfile = {
+  id: string;
+  nombre: string;
+  apellido: string;
+  telefono: string;
+  email: string;
+  rol: Rol;
+  puntos: number;
+  created_at: string;
+};
+
+function asIsoString(value: unknown): string {
+  if (value instanceof Date) return value.toISOString();
+  if (typeof value === 'string') return value;
+  return new Date(String(value)).toISOString();
+}
+
+function toPublicUser(row: { id: string; email: string; created_at: unknown }): PublicUser {
+  return {
+    id: row.id,
+    email: row.email,
+    created_at: asIsoString(row.created_at),
+  };
+}
+
+function toPublicProfile(row: {
+  id: string;
+  nombre: string;
+  apellido: string;
+  telefono: string;
+  email: string;
+  rol: Rol;
+  puntos: number;
+  created_at: unknown;
+}): PublicProfile {
+  return {
+    id: row.id,
+    nombre: row.nombre,
+    apellido: row.apellido,
+    telefono: row.telefono,
+    email: row.email,
+    rol: row.rol,
+    puntos: row.puntos,
+    created_at: asIsoString(row.created_at),
+  };
+}
+
+function isAuthPayload(value: unknown): value is AuthJwtPayload {
+  if (!value || typeof value !== 'object') return false;
+
+  const v = value as Record<string, unknown>;
+  if (typeof v.sub !== 'string') return false;
+  if (v.rol !== 'admin' && v.rol !== 'clienta') return false;
+
+  return true;
+}
+
+function normalizeEmail(emailRaw: string): string {
+  return emailRaw.trim().toLowerCase();
+}
+
+function isUniqueViolation(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && 'code' in error && (error as { code?: unknown }).code === '23505';
+}
+
+const defaultCookieName = 'auth';
+const defaultCookieMaxAgeSeconds = 7 * 86400;
+
+export function requireAuth({ auth, status }: { auth: AuthJwtPayload | null; status: (code: number, body?: unknown) => unknown }) {
+  if (!auth) return status(401, { error: 'unauthorized' });
+}
+
+export function requireAdmin({ auth, status }: { auth: AuthJwtPayload | null; status: (code: number, body?: unknown) => unknown }) {
+  if (!auth) return status(401, { error: 'unauthorized' });
+  if (auth.rol !== 'admin') return status(403, { error: 'forbidden' });
+}
+
+export function authModule(options: AuthModuleOptions) {
+  const cookieName = options.cookieName ?? defaultCookieName;
+  const cookieMaxAgeSeconds = options.cookieMaxAgeSeconds ?? defaultCookieMaxAgeSeconds;
+
+  return new Elysia({ name: 'auth-module' })
+    .use(
+      jwt({
+        name: 'jwt',
+        secret: options.jwtSecret,
+        exp: `${cookieMaxAgeSeconds}s`,
+      })
+    )
+    .resolve(async ({ jwt, cookie }) => {
+      const token = (cookie as Record<string, { value?: string | null }>)[cookieName]?.value;
+      const verified = token ? await jwt.verify(token) : null;
+      return {
+        auth: isAuthPayload(verified) ? verified : null,
+      };
+    })
+    .post(
+      '/api/auth/signup',
+      async ({ body, jwt, cookie, set }) => {
+        const email = normalizeEmail(body.email);
+        const password = body.password;
+        const nombre = body.nombre.trim();
+        const apellido = body.apellido.trim();
+        const telefono = body.telefono.trim();
+
+        const passwordHash = await bcrypt.hash(password, 10);
+
+        try {
+          const created = await db.transaction(async (tx) => {
+            const insertedUsers = await tx
+              .insert(users)
+              .values({
+                email,
+                password_hash: passwordHash,
+              })
+              .returning();
+
+            const userRow = insertedUsers[0];
+            if (!userRow) {
+              throw new Error('Failed to create user');
+            }
+
+            const insertedProfiles = await tx
+              .insert(profiles)
+              .values({
+                id: userRow.id,
+                nombre,
+                apellido,
+                telefono,
+                email,
+                rol: 'clienta',
+                puntos: 0,
+              })
+              .returning();
+
+            const profileRow = insertedProfiles[0];
+            if (!profileRow) {
+              throw new Error('Failed to create profile');
+            }
+
+            return { userRow, profileRow };
+          });
+
+          const token = await jwt.sign({ sub: created.userRow.id, rol: created.profileRow.rol });
+          const cookieRecord = cookie as Record<string, { set: (opts: Record<string, unknown>) => void }>;
+
+          cookieRecord[cookieName].set({
+            value: token,
+            httpOnly: true,
+            sameSite: 'lax',
+            secure: options.nodeEnv === 'production',
+            path: '/',
+            maxAge: cookieMaxAgeSeconds,
+          });
+
+          set.status = 201;
+          return {
+            user: toPublicUser(created.userRow),
+            profile: toPublicProfile(created.profileRow),
+          };
+        } catch (error) {
+          if (isUniqueViolation(error)) {
+            set.status = 409;
+            return { error: 'email_already_exists' };
+          }
+
+          throw error;
+        }
+      },
+      {
+        body: t.Object({
+          email: t.String({ format: 'email' }),
+          password: t.String({ minLength: 6 }),
+          nombre: t.String({ minLength: 1 }),
+          apellido: t.String({ minLength: 1 }),
+          telefono: t.String({ minLength: 1 }),
+        }),
+      }
+    )
+    .post(
+      '/api/auth/signin',
+      async ({ body, jwt, cookie, set }) => {
+        const email = normalizeEmail(body.email);
+
+        const foundUsers = await db.select().from(users).where(eq(users.email, email)).limit(1);
+        const userRow = foundUsers[0];
+        if (!userRow) {
+          set.status = 401;
+          return { error: 'invalid_credentials' };
+        }
+
+        const ok = await bcrypt.compare(body.password, userRow.password_hash);
+        if (!ok) {
+          set.status = 401;
+          return { error: 'invalid_credentials' };
+        }
+
+        const foundProfiles = await db.select().from(profiles).where(eq(profiles.id, userRow.id)).limit(1);
+        const profileRow = foundProfiles[0];
+        if (!profileRow) {
+          set.status = 401;
+          return { error: 'profile_not_found' };
+        }
+
+        const token = await jwt.sign({ sub: userRow.id, rol: profileRow.rol });
+        const cookieRecord = cookie as Record<string, { set: (opts: Record<string, unknown>) => void }>;
+
+        cookieRecord[cookieName].set({
+          value: token,
+          httpOnly: true,
+          sameSite: 'lax',
+          secure: options.nodeEnv === 'production',
+          path: '/',
+          maxAge: cookieMaxAgeSeconds,
+        });
+
+        return {
+          user: toPublicUser(userRow),
+          profile: toPublicProfile(profileRow),
+        };
+      },
+      {
+        body: t.Object({
+          email: t.String({ format: 'email' }),
+          password: t.String({ minLength: 1 }),
+        }),
+      }
+    )
+    .post('/api/auth/signout', ({ cookie }) => {
+      const cookieRecord = cookie as Record<string, { remove: () => void; set: (opts: Record<string, unknown>) => void }>;
+
+      if (cookieRecord[cookieName]) {
+        cookieRecord[cookieName].remove();
+        cookieRecord[cookieName].set({
+          value: '',
+          httpOnly: true,
+          sameSite: 'lax',
+          secure: options.nodeEnv === 'production',
+          path: '/',
+          maxAge: 0,
+        });
+      }
+
+      return { ok: true };
+    })
+    .get('/api/auth/me', async ({ auth, set }) => {
+      if (!auth) {
+        set.status = 401;
+        return { error: 'unauthorized' };
+      }
+
+      const foundUsers = await db.select().from(users).where(eq(users.id, auth.sub)).limit(1);
+      const userRow = foundUsers[0];
+      if (!userRow) {
+        set.status = 401;
+        return { error: 'unauthorized' };
+      }
+
+      const foundProfiles = await db.select().from(profiles).where(eq(profiles.id, auth.sub)).limit(1);
+      const profileRow = foundProfiles[0];
+      if (!profileRow) {
+        set.status = 401;
+        return { error: 'unauthorized' };
+      }
+
+      return {
+        user: toPublicUser(userRow),
+        profile: toPublicProfile(profileRow),
+      };
+    });
+}

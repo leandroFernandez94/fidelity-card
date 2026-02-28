@@ -36,7 +36,7 @@
 ---
 
 ## [4] Auth API: cookie httpOnly (JWT)
-**Estado:** todo
+**Estado:** done
 **Descripción:** (Refactor Supabase Auth -> Auth propio) Implementar auth stateless con JWT guardado en cookie `httpOnly` (dev con Vite proxy, sin CORS). Endpoints: `POST /api/auth/signup`, `POST /api/auth/signin`, `POST /api/auth/signout`, `GET /api/auth/me`. Middleware `requireAuth` y `requireAdmin` (chequeo por `rol`).
 **Contexto:** Hoy `src/contexts/AuthContext.tsx` usa `supabase.auth.*` y `profiles` para rol/puntos. El nuevo flow debe proveer lo mismo via `/api/auth/*`.
 **Alcance MVP (decisiones):**
@@ -51,7 +51,7 @@
 - `POST /api/auth/signout` limpia cookie.
 - `GET /api/auth/me` devuelve `{ user, profile }` o `401`.
 - `requireAdmin` bloquea rutas admin con `403`.
-**Comentarios:**
+**Comentarios:** Branch: feature-4-auth-api-cookie-jwt. Completado: auth stateless con JWT en cookie httpOnly (signup/signin/signout/me) + helpers `requireAuth`/`requireAdmin`. Agregue `JWT_SECRET` a `.env.example`. Smoke tests manuales con curl: signup->me OK, signin OK, signout limpia cookie (me => 401). Archivos: `apps/api/src/modules/auth.ts`, `apps/api/src/index.ts`, `apps/api/package.json`, `apps/api/bun.lock`, `.env.example`.
 
 ---
 

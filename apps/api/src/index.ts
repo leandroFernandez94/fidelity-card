@@ -1,8 +1,11 @@
 import { Elysia } from 'elysia';
 
+import { authModule, requireAdmin, requireAuth } from './modules/auth';
+
 type Env = {
   PORT: number;
   NODE_ENV: 'development' | 'test' | 'production';
+  JWT_SECRET: string;
 };
 
 function getEnv(): Env {
@@ -19,7 +22,12 @@ function getEnv(): Env {
     throw new Error(`Invalid NODE_ENV: ${String(nodeEnvRaw)}`);
   }
 
-  return { PORT: port, NODE_ENV: nodeEnv };
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) {
+    throw new Error('JWT_SECRET is required');
+  }
+
+  return { PORT: port, NODE_ENV: nodeEnv, JWT_SECRET: jwtSecret };
 }
 
 const env = getEnv();
@@ -35,7 +43,25 @@ const app = new Elysia()
       error: 'internal_server_error'
     };
   })
+  .use(
+    authModule({
+      jwtSecret: env.JWT_SECRET,
+      nodeEnv: env.NODE_ENV,
+    })
+  )
   .get('/api/health', () => ({ ok: true }))
+  .get('/api/_protected', ({ auth, status }) => {
+    const denied = requireAuth({ auth, status });
+    if (denied) return denied;
+
+    return { ok: true, sub: auth.sub, rol: auth.rol };
+  })
+  .get('/api/_admin', ({ auth, status }) => {
+    const denied = requireAdmin({ auth, status });
+    if (denied) return denied;
+
+    return { ok: true };
+  })
   .listen(env.PORT);
 
 if (env.NODE_ENV !== 'test') {
