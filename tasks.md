@@ -69,7 +69,7 @@
 ---
 
 ## [6] API de negocio: citas
-**Estado:** todo
+**Estado:** done
 **Descripción:** (Refactor FE -> API) Reemplazar el acceso directo a Supabase para `citas` por endpoints del BE: `GET /api/citas`, `GET /api/citas?clienta_id=...` y `POST/PATCH/DELETE /api/citas/:id` (permisos simples). Soportar update de `estado` como lo usa el admin.
 **Contexto:** Hoy `src/services/citas.ts` filtra por `clienta_id`, consulta pendientes/proximas y actualiza `estado`.
 **Alcance MVP (permisos simples):**
@@ -80,7 +80,7 @@
 - `GET /api/citas` (admin) lista todas.
 - `GET /api/citas?clienta_id=me|<uuid>` respeta permisos.
 - `PATCH /api/citas/:id` permite cambiar `estado` y `notas`.
-**Comentarios:**
+**Comentarios:** Completado: cree `apps/api/src/modules/citas.ts` con handlers CRUD + permisos (admin vs clienta). Agregue endpoints `GET /api/citas`, `GET /api/citas/proximas`, `GET /api/citas/pendientes`, `POST /api/citas`, `PATCH /api/citas/:id`, `DELETE /api/citas/:id`. Valide enum `estado` y `notas`. Registre rutas en `apps/api/src/index.ts`. Typecheck pasa (`npm run typecheck` en `apps/api/`). Archivos: `apps/api/src/modules/citas.ts`, `apps/api/src/domain/transformers/citas.ts`, `apps/api/src/domain/types/citas.ts`, `apps/api/src/index.ts`.
 
 ---
 
