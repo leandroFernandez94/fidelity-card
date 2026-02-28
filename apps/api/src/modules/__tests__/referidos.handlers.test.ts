@@ -75,16 +75,24 @@ function makeRowsWrapper<T>(rows: T[]) {
   };
 }
 
-function makeDb(seed: { profiles: ProfileRow[]; referidos: ReferidoRow[] }) {
+type DbLike = {
+  select: (...args: unknown[]) => unknown;
+  update: (...args: unknown[]) => unknown;
+  insert: (...args: unknown[]) => unknown;
+  transaction: <T>(fn: (tx: DbLike) => Promise<T>) => Promise<T>;
+  _data: { profilesData: ProfileRow[]; referidosData: ReferidoRow[] };
+};
+
+function makeDb(seed: { profiles: ProfileRow[]; referidos: ReferidoRow[] }): DbLike {
   const profilesData = seed.profiles.map((row) => ({ ...row }));
   const referidosData = seed.referidos.map((row) => ({ ...row }));
 
-  const select = (_projection?: unknown) => ({
+  const select = () => ({
     from: (table: unknown) => {
-      const getRows = () => {
+      const getRows = (): ProfileRow[] | ReferidoRow[] => {
         if (table === profiles) return profilesData;
         if (table === referidos) return referidosData;
-        return [];
+        return [] as ProfileRow[];
       };
 
       const filterByPredicates = (predicates: Array<{ right?: unknown; value?: unknown }>) => {
@@ -96,19 +104,19 @@ function makeDb(seed: { profiles: ProfileRow[]; referidos: ReferidoRow[] }) {
 
           if (table === referidos) {
             if (predicateValue.type === 'referente' || predicateValue.type === 'id') {
-              rows = rows.filter((row) => row.referente_id === predicateValue.value);
+              rows = (rows as ReferidoRow[]).filter((row) => row.referente_id === predicateValue.value);
             }
             continue;
           }
 
           if (table === profiles) {
             if (predicateValue.type === 'rol') {
-              rows = rows.filter((row) => row.rol === predicateValue.value);
+              rows = (rows as ProfileRow[]).filter((row) => row.rol === predicateValue.value);
               continue;
             }
 
             if (predicateValue.type === 'id') {
-              rows = rows.filter((row) => row.id === predicateValue.value);
+              rows = (rows as ProfileRow[]).filter((row) => row.id === predicateValue.value);
             }
             continue;
           }
@@ -120,13 +128,13 @@ function makeDb(seed: { profiles: ProfileRow[]; referidos: ReferidoRow[] }) {
       const whereChain = (predicates: Array<{ right?: unknown; value?: unknown }>) => ({
         where: (predicate?: { right?: unknown; value?: unknown }) =>
           whereChain(predicate ? [...predicates, predicate] : predicates),
-        orderBy: () => makeRowsWrapper(filterByPredicates(predicates)),
+        orderBy: () => makeRowsWrapper(filterByPredicates(predicates) as unknown[]),
         limit: () => filterByPredicates(predicates),
       });
 
       return {
         where: (predicate?: { right?: unknown; value?: unknown }) => whereChain(predicate ? [predicate] : []),
-        orderBy: () => makeRowsWrapper(getRows()),
+        orderBy: () => makeRowsWrapper(getRows() as unknown[]),
       };
     },
   });
@@ -136,7 +144,7 @@ function makeDb(seed: { profiles: ProfileRow[]; referidos: ReferidoRow[] }) {
       where: (predicate?: { right?: unknown; value?: unknown }) => ({
         returning: () => {
           if (table === profiles) {
-            const id = getPredicateValue(predicate);
+            const id = getPredicateValue(predicate)?.value;
             const idx = profilesData.findIndex((row) => row.id === id);
             if (idx === -1) return [];
             const current = profilesData[idx];
@@ -170,8 +178,8 @@ function makeDb(seed: { profiles: ProfileRow[]; referidos: ReferidoRow[] }) {
     }),
   });
 
-  const transaction = async <T>(fn: (tx: { select: typeof select; update: typeof update; insert: typeof insert }) => Promise<T>) => {
-    return fn({ select, update, insert });
+  const transaction: DbLike['transaction'] = async <T>(fn: (tx: DbLike) => Promise<T>) => {
+    return fn({ select, update, insert, transaction, _data: { profilesData, referidosData } });
   };
 
   return {
@@ -190,7 +198,7 @@ describe('createReferidosHandlers', () => {
       referidos: [],
     });
     const { status } = makeStatus();
-    const handlers = createReferidosHandlers({ db: db as unknown as typeof db });
+    const handlers = createReferidosHandlers({ db: db as unknown as never });
     const auth = { sub: 'clienta-1', rol: 'clienta' } satisfies AuthJwtPayload;
 
     const result = await handlers.list({ auth, status, query: {} });
@@ -222,7 +230,7 @@ describe('createReferidosHandlers', () => {
       ],
     });
     const { status } = makeStatus();
-    const handlers = createReferidosHandlers({ db: db as unknown as typeof db });
+    const handlers = createReferidosHandlers({ db: db as unknown as never });
     const auth = { sub: 'clienta-1', rol: 'clienta' } satisfies AuthJwtPayload;
 
     const result = await handlers.list({ auth, status, query: { referente_id: 'clienta-1' } });
@@ -266,7 +274,7 @@ describe('createReferidosHandlers', () => {
       referidos: [],
     });
     const { status } = makeStatus();
-    const handlers = createReferidosHandlers({ db: db as unknown as typeof db });
+    const handlers = createReferidosHandlers({ db: db as unknown as never });
     const auth = { sub: 'admin-1', rol: 'admin' } satisfies AuthJwtPayload;
     const set = { status: 0 };
 
@@ -325,7 +333,7 @@ describe('createReferidosHandlers', () => {
       referidos: [],
     });
     const { status } = makeStatus();
-    const handlers = createReferidosHandlers({ db: db as unknown as typeof db });
+    const handlers = createReferidosHandlers({ db: db as unknown as never });
     const auth = { sub: 'clienta-1', rol: 'clienta' } satisfies AuthJwtPayload;
 
     const result = await handlers.puntosTop({ auth, status, query: { limit: 2 } });

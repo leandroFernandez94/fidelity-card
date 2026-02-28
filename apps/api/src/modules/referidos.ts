@@ -1,13 +1,14 @@
 import { t } from 'elysia';
+import type { AnyElysia } from 'elysia';
 
 import { db as defaultDb } from '../db';
 
 import { createReferidosHandlers } from './referidos.handlers';
 
-export function registerReferidosRoutes<App extends { get: unknown; post: unknown }>(app: App): App {
+export function registerReferidosRoutes(app: AnyElysia) {
   const handlers = createReferidosHandlers({ db: defaultDb });
 
-  return (app as any)
+  return app
     .get(
       '/api/referidos',
       handlers.list,

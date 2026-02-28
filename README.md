@@ -27,11 +27,96 @@ Sistema de gestión de citas y fidelización para salón de manicura.
 
 ## 📋 Guía de Configuración
 
-1. **Levantar Postgres**: `docker compose up -d`
-2. **Configurar `.env`**: completar `DATABASE_URL` y `JWT_SECRET`
-3. **Correr migraciones**: `bun run db:migrate`
-4. **Levantar API**: `bun run api:dev`
-5. **Levantar frontend**: `bun run dev`
+Guia rapida para levantar DB + API + Frontend en desarrollo.
+
+### Requisitos
+
+- Bun instalado (`bun --version`).
+- Docker + Docker Compose (`docker --version`, `docker compose version`).
+
+### 1) Instalar dependencias
+
+```bash
+bun install
+```
+
+### 2) Variables de entorno
+
+Copiar `.env.example` a `.env` y ajustar si hace falta:
+
+```bash
+cp .env.example .env
+```
+
+Variables minimas:
+
+- `DATABASE_URL` (Postgres local)
+- `JWT_SECRET` (firmado de cookie JWT en dev)
+
+Ejemplo (por defecto):
+
+```env
+DATABASE_URL=postgres://fidelity:fidelity@127.0.0.1:5432/fidelity_card
+JWT_SECRET=dev-change-me
+```
+
+### 3) Levantar Postgres (Docker)
+
+```bash
+docker compose up -d
+```
+
+Opcional: ver estado del healthcheck
+
+```bash
+docker compose ps
+```
+
+### 4) Migraciones (Drizzle)
+
+Aplica migraciones sobre la DB local.
+
+Nota: los scripts de migracion usan `.env.example` por defecto.
+Si cambiaste credenciales/DB en `.env`, actualiza tambien `.env.example` o ejecuta drizzle-kit con tus vars.
+
+```bash
+bun run db:migrate
+```
+
+Smoke test de conexion (opcional):
+
+```bash
+bun run db:smoke
+```
+
+### 5) Levantar la API
+
+La API corre por defecto en `http://localhost:3001`.
+
+```bash
+bun run api:dev
+```
+
+Healthcheck:
+
+```bash
+curl -s http://localhost:3001/api/health
+```
+
+### 6) Levantar el Frontend (Vite)
+
+```bash
+bun run dev
+```
+
+En dev, Vite proxyea `/api/*` a `http://localhost:3001` (ver `vite.config.ts`).
+Esto permite auth por cookie `httpOnly` sin CORS.
+
+### Troubleshooting
+
+- Postgres no levanta: revisa `docker compose logs db` y que el puerto `POSTGRES_PORT` no este ocupado.
+- Migraciones fallan: verifica `DATABASE_URL` y que el contenedor este healthy.
+- Auth no persiste: asegúrate de usar el FE via Vite (mismo origin) y que las requests incluyan cookies.
 
 ## 📁 Archivos de Configuración
 
