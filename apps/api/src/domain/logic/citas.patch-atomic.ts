@@ -3,9 +3,12 @@ import type { CitaEstado } from '../types/citas';
 export type CitaPatchRow = {
   id: string;
   clienta_id: string;
+  servicio_ids: string[];
+  fecha_hora: unknown;
   puntos_ganados: number;
   estado: CitaEstado;
   notas: string | null;
+  created_at: unknown;
 };
 
 export type CitaPatchUpdates = {

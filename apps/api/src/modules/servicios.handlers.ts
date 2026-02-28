@@ -8,7 +8,7 @@ import type { StatusHelper } from '../domain/types/http';
 import { requireAdmin } from './auth-context';
 import type { AuthJwtPayload } from './auth-context';
 
-type ServicioCreateBody = {
+export type ServicioCreateBody = {
   nombre: string;
   descripcion: string;
   precio: number;
@@ -16,7 +16,7 @@ type ServicioCreateBody = {
   puntos_otorgados: number;
 };
 
-type ServicioPatchBody = Partial<ServicioCreateBody>;
+export type ServicioPatchBody = Partial<ServicioCreateBody>;
 
 type ServicioIdParams = {
   id: string;

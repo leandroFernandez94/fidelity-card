@@ -4,14 +4,17 @@ import { patchCitaAtomic, type CitaPatchRow, type CitasPatchAtomicTx } from '../
 
 describe('patchCitaAtomic', () => {
   it('awards points when transitioning to completada', async () => {
-    const state = {
+    const state: { cita: CitaPatchRow; puntos: number } = {
       cita: {
         id: 'cita-1',
         clienta_id: 'clienta-1',
+        servicio_ids: [],
+        fecha_hora: new Date('2026-01-01T10:00:00.000Z'),
         puntos_ganados: 20,
         estado: 'pendiente',
         notas: null,
-      } satisfies CitaPatchRow,
+        created_at: new Date('2026-01-01T09:00:00.000Z'),
+      },
       puntos: 10,
     };
 
@@ -42,14 +45,17 @@ describe('patchCitaAtomic', () => {
   });
 
   it('does not award points if guarded update does not apply', async () => {
-    const state = {
+    const state: { cita: CitaPatchRow; puntos: number } = {
       cita: {
         id: 'cita-1',
         clienta_id: 'clienta-1',
+        servicio_ids: [],
+        fecha_hora: new Date('2026-01-01T10:00:00.000Z'),
         puntos_ganados: 20,
         estado: 'cancelada',
         notas: null,
-      } satisfies CitaPatchRow,
+        created_at: new Date('2026-01-01T09:00:00.000Z'),
+      },
       puntos: 10,
     };
 
