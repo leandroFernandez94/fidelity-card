@@ -38,15 +38,33 @@ function resolveErrorMessage(data: ApiErrorDetails, fallback: string) {
 async function request<T>(path: string, init: RequestInit = {}) {
   const headers = new Headers(init.headers);
 
+  const timeoutMs = 15000;
+  const controller = init.signal ? null : new AbortController();
+  const timeoutId = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+
   if (!headers.has('Content-Type') && init.body) {
     headers.set('Content-Type', 'application/json');
   }
 
-  const response = await fetch(path, {
-    ...init,
-    headers,
-    credentials: 'include'
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(path, {
+      ...init,
+      headers,
+      credentials: 'include',
+      signal: init.signal ?? controller?.signal
+    });
+  } catch (error) {
+    if (controller?.signal.aborted) {
+      throw new ApiError('Request timed out', 408);
+    }
+    throw error;
+  } finally {
+    if (timeoutId !== null) {
+      clearTimeout(timeoutId);
+    }
+  }
 
   if (response.status === 204) {
     return undefined as T;

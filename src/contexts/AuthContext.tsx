@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { get, post, isUnauthorized, ApiError } from '../services/api';
 import type { Profile } from '../types';
+import type { ReactNode } from 'react';
 
 type AuthUser = {
   id: string;

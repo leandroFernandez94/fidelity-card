@@ -5,10 +5,20 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
+    host: true,
     proxy: {
       '/api': {
         target: 'http://localhost:3001',
-        changeOrigin: true,
+        changeOrigin: false,
+        cookieDomainRewrite: '',
+        configure: (proxy) => {
+          proxy.on('proxyReq', (proxyReq, req) => {
+            const host = req.headers.host;
+            if (host) {
+              proxyReq.setHeader('X-Forwarded-Host', host);
+            }
+          });
+        },
       },
     },
   },

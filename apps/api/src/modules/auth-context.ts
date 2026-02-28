@@ -17,18 +17,48 @@ export type AuthContextOptions = {
   cookieMaxAgeSeconds?: number;
 };
 
-function isAuthPayload(value: unknown): value is AuthJwtPayload {
-  if (!value || typeof value !== 'object') return false;
+function normalizeAuthPayload(value: Record<string, unknown>): AuthJwtPayload | null {
+  const sub = value.sub;
+  const subject = value.subject;
+  const rol = value.rol;
 
-  const v = value as Record<string, unknown>;
-  if (typeof v.sub !== 'string') return false;
-  if (v.rol !== 'admin' && v.rol !== 'clienta') return false;
+  const resolvedSub = typeof sub === 'string' ? sub : typeof subject === 'string' ? subject : null;
+  if (!resolvedSub) return null;
+  if (rol !== 'admin' && rol !== 'clienta') return null;
 
-  return true;
+  const iat = typeof value.iat === 'number' ? value.iat : undefined;
+  const exp = typeof value.exp === 'number' ? value.exp : undefined;
+
+  return { sub: resolvedSub, rol: rol as Rol, iat, exp };
 }
 
 const defaultCookieName = 'auth';
 const defaultCookieMaxAgeSeconds = 7 * 86400;
+
+function getCookieValue(cookieHeader: string | null, name: string): string | null {
+  if (!cookieHeader) return null;
+
+  const parts = cookieHeader.split(';');
+  for (const part of parts) {
+    const trimmed = part.trim();
+    if (!trimmed) continue;
+
+    const eqIndex = trimmed.indexOf('=');
+    if (eqIndex <= 0) continue;
+
+    const key = trimmed.slice(0, eqIndex).trim();
+    if (key !== name) continue;
+
+    const rawValue = trimmed.slice(eqIndex + 1);
+    try {
+      return decodeURIComponent(rawValue);
+    } catch {
+      return rawValue;
+    }
+  }
+
+  return null;
+}
 
 export function requireAuth({ auth, status }: { auth: AuthJwtPayload | null; status: (code: number, body?: unknown) => unknown }) {
   if (!auth) return status(401, { error: 'unauthorized' });
@@ -52,12 +82,16 @@ export function authContextModule(options: AuthContextOptions) {
         exp: `${cookieMaxAgeSeconds}s`,
       })
     )
-    .resolve(async ({ jwt, cookie }) => {
-      const token = (cookie as Record<string, { value?: string | null }>)[cookieName]?.value;
+    .resolve(async ({ jwt, request, cookie }) => {
+      const token =
+        (cookie as Record<string, { value?: string | null }>)[cookieName]?.value ??
+        getCookieValue(request.headers.get('cookie'), cookieName);
       const verified = token ? await jwt.verify(token) : null;
+      const record = verified && typeof verified === 'object' ? (verified as Record<string, unknown>) : null;
 
       return {
-        auth: isAuthPayload(verified) ? verified : null,
+        auth: record ? normalizeAuthPayload(record) : null,
       };
-    });
+    })
+    .as('scoped');
 }
