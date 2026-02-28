@@ -131,14 +131,14 @@
 ---
 
 ## [11] Frontend: AuthContext sin Supabase
-**Estado:** todo
+**Estado:** done
 **Descripción:** (Refactor Supabase Auth -> Auth propio) Refactor de `src/contexts/AuthContext.tsx` para usar `/api/auth/*` y `GET /api/auth/me` con cookies `httpOnly`. Eliminar dependencias de `supabase.auth`.
 **Entregables:** nuevo AuthContext usando `fetch` + `api.ts`, y tipos alineados con `Profile`.
 **Criterios de aceptacion:**
 - `signIn/signUp/signOut` llaman a endpoints del BE.
 - `refreshProfile` se basa en `/api/auth/me` o `/api/profiles/:id`.
 - Ningun import de `@supabase/supabase-js` queda en el contexto.
-**Comentarios:**
+**Comentarios:** Branch: feature-11-frontend-authcontext-sin-supabase. Completado: AuthContext ahora consume `/api/auth/*` con cookies httpOnly via `src/services/api.ts`, elimina dependencias de Supabase y maneja errores/401. Actualice tipos para user y payload auth. Archivos: `src/contexts/AuthContext.tsx`. Tests: ⚠️ `npm test` no configurado (script inexistente).
 
 ---
 
