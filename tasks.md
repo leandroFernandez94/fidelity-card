@@ -98,7 +98,7 @@
 ---
 
 ## [8] API de negocio: referidos + puntos
-**Estado:** todo
+**Estado:** done
 **Descripción:** (Refactor FE -> API) Implementar `GET /api/referidos?referente_id=...`, `POST /api/referidos` y endpoints de puntos necesarios (`/api/puntos/top`, `/api/puntos/sumar`, `/api/puntos/restar`) o equivalente integrado para reemplazar los services que hoy usan Supabase.
 **Contexto:** Hoy `src/services/referidos.ts` y `src/services/puntos.ts` actualizan `profiles.puntos` directo y guardan `referidos`.
 **Alcance MVP:** sin transacciones complejas al inicio, pero evitar inconsistencias obvias (ideal: transaccion al crear referido + sumar puntos).
@@ -106,7 +106,7 @@
 **Criterios de aceptacion:**
 - `GET /api/puntos/top` devuelve top clientas (rol=clienta) por puntos.
 - `POST /api/referidos` crea referido y suma puntos al referente.
-**Comentarios:**
+**Comentarios:** Branch: feature-8-api-referidos-puntos. Completado: endpoints `/api/referidos` (listar por referente y crear con suma de puntos transaccional), `/api/puntos/top`, `/api/puntos/sumar`, `/api/puntos/restar` con permisos (admin vs user). Agregue tipos/transformer de referidos y registro de rutas. Tests con Vitest: `npm test` en `apps/api/` OK (smoke + handlers referidos).
 
 ---
 
