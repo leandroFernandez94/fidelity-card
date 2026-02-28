@@ -57,7 +57,7 @@ export default function Referidos() {
       setFormData({ email: '', nombre: '' });
       
       setTimeout(() => setMensaje(null), 5000);
-    } catch (error) {
+    } catch {
       setMensaje({
         tipo: 'error',
         texto: 'Error al enviar la invitación. Intenta nuevamente.'

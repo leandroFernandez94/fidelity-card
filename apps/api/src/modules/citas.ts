@@ -1,5 +1,6 @@
 import { t } from 'elysia';
-import { asc, eq, and, gte, inArray } from 'drizzle-orm';
+import type { AnyElysia } from 'elysia';
+import { asc, eq, gte, inArray } from 'drizzle-orm';
 
 import { db as defaultDb } from '../db';
 import { citas } from '../db/schema';
@@ -36,37 +37,38 @@ export type CitasDeps = {
 };
 
 export type CitasListCtx = {
-  auth: unknown;
+  auth?: unknown;
   query: CitasListQuery;
 };
 
 export type CitaCreateCtx = {
-  auth: unknown;
+  auth?: unknown;
   status: StatusHelper;
   body: CitaCreateBody;
-  set: { status: number };
+  set: { status?: number | string };
 };
 
 export type CitaPatchCtx = {
-  auth: unknown;
+  auth?: unknown;
   status: StatusHelper;
   params: CitaIdParams;
   body: CitaPatchBody;
-  set: { status: number };
+  set: { status?: number | string };
 };
 
 export type CitaDeleteCtx = {
-  auth: unknown;
+  auth?: unknown;
   status: StatusHelper;
   params: CitaIdParams;
-  set: { status: number };
+  set: { status?: number | string };
 };
 
 const validEstados = ['pendiente', 'confirmada', 'completada', 'cancelada'] as const;
 
 export function createCitasHandlers(deps: CitasDeps) {
   return {
-    list: async ({ auth, query }: CitasListCtx) => {
+    list: async (ctx: unknown) => {
+      const { auth, query } = ctx as CitasListCtx;
       const jwt = ((auth as unknown) ?? null) as AuthJwtPayload | null;
       const denied = requireAuth({ auth: jwt, status: () => {} });
       if (denied) return [];
@@ -98,7 +100,8 @@ export function createCitasHandlers(deps: CitasDeps) {
         .orderBy(asc(citas.fecha_hora));
       return rows.map(toPublicCita);
     },
-    getProximas: async ({ auth }: { auth: unknown }) => {
+    getProximas: async (ctx: unknown) => {
+      const { auth } = ctx as { auth?: unknown };
       const jwt = ((auth as unknown) ?? null) as AuthJwtPayload | null;
       const denied = requireAdmin({ auth: jwt, status: () => {} });
       if (denied) return [];
@@ -111,7 +114,8 @@ export function createCitasHandlers(deps: CitasDeps) {
         .orderBy(asc(citas.fecha_hora));
       return rows.map(toPublicCita);
     },
-    getPendientes: async ({ auth }: { auth: unknown }) => {
+    getPendientes: async (ctx: unknown) => {
+      const { auth } = ctx as { auth?: unknown };
       const jwt = ((auth as unknown) ?? null) as AuthJwtPayload | null;
       const denied = requireAdmin({ auth: jwt, status: () => {} });
       if (denied) return [];
@@ -123,7 +127,8 @@ export function createCitasHandlers(deps: CitasDeps) {
         .orderBy(asc(citas.fecha_hora));
       return rows.map(toPublicCita);
     },
-    create: async ({ auth, status, body, set }: CitaCreateCtx) => {
+    create: async (ctx: unknown) => {
+      const { auth, status, body, set } = ctx as CitaCreateCtx;
       const jwt = ((auth as unknown) ?? null) as AuthJwtPayload | null;
       const denied = requireAuth({ auth: jwt, status });
       if (denied) return denied;
@@ -155,7 +160,8 @@ export function createCitasHandlers(deps: CitasDeps) {
       set.status = 201;
       return toPublicCita(row);
     },
-    patch: async ({ auth, status, params, body, set }: CitaPatchCtx) => {
+    patch: async (ctx: unknown) => {
+      const { auth, status, params, body, set } = ctx as CitaPatchCtx;
       const jwt = ((auth as unknown) ?? null) as AuthJwtPayload | null;
       const denied = requireAuth({ auth: jwt, status });
       if (denied) return denied;
@@ -200,7 +206,8 @@ export function createCitasHandlers(deps: CitasDeps) {
 
       return toPublicCita(row);
     },
-    remove: async ({ auth, status, params, set }: CitaDeleteCtx) => {
+    remove: async (ctx: unknown) => {
+      const { auth, status, params, set } = ctx as CitaDeleteCtx;
       const jwt = ((auth as unknown) ?? null) as AuthJwtPayload | null;
       const denied = requireAuth({ auth: jwt, status });
       if (denied) return denied;
@@ -229,10 +236,10 @@ export function createCitasHandlers(deps: CitasDeps) {
   };
 }
 
-export function registerCitasRoutes<App extends { get: unknown; post: unknown; patch: unknown; delete: unknown }>(app: App): App {
+export function registerCitasRoutes(app: AnyElysia) {
   const handlers = createCitasHandlers({ db: defaultDb });
 
-  return (app as any)
+  return app
     .get(
       '/api/citas',
       handlers.list,

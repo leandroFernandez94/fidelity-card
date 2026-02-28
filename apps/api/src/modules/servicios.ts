@@ -1,4 +1,5 @@
 import { t } from 'elysia';
+import type { AnyElysia } from 'elysia';
 import { asc, eq } from 'drizzle-orm';
 
 import { db as defaultDb } from '../db';
@@ -27,37 +28,38 @@ export type ServiciosDeps = {
   db: typeof defaultDb;
 };
 
-export type ServiciosListCtx = {};
+export type ServiciosListCtx = Record<string, never>;
 
 export type ServicioCreateCtx = {
-  auth: unknown;
+  auth?: unknown;
   status: StatusHelper;
   body: ServicioCreateBody;
-  set: { status: number };
+  set: { status?: number | string };
 };
 
 export type ServicioPatchCtx = {
-  auth: unknown;
+  auth?: unknown;
   status: StatusHelper;
   params: ServicioIdParams;
   body: ServicioPatchBody;
-  set: { status: number };
+  set: { status?: number | string };
 };
 
 export type ServicioDeleteCtx = {
-  auth: unknown;
+  auth?: unknown;
   status: StatusHelper;
   params: ServicioIdParams;
-  set: { status: number };
+  set: { status?: number | string };
 };
 
 export function createServiciosHandlers(deps: ServiciosDeps) {
   return {
-    list: async (_ctx: ServiciosListCtx) => {
+    list: async () => {
       const rows = await deps.db.select().from(servicios).orderBy(asc(servicios.nombre));
       return rows.map(toPublicServicio);
     },
-    create: async ({ auth, status, body, set }: ServicioCreateCtx) => {
+    create: async (ctx: unknown) => {
+      const { auth, status, body, set } = ctx as ServicioCreateCtx;
       const denied = requireAdmin({ auth: ((auth as unknown) ?? null) as AuthJwtPayload | null, status });
       if (denied) return denied;
 
@@ -81,7 +83,8 @@ export function createServiciosHandlers(deps: ServiciosDeps) {
       set.status = 201;
       return toPublicServicio(row);
     },
-    patch: async ({ auth, status, params, body, set }: ServicioPatchCtx) => {
+    patch: async (ctx: unknown) => {
+      const { auth, status, params, body, set } = ctx as ServicioPatchCtx;
       const denied = requireAdmin({ auth: ((auth as unknown) ?? null) as AuthJwtPayload | null, status });
       if (denied) return denied;
 
@@ -107,7 +110,8 @@ export function createServiciosHandlers(deps: ServiciosDeps) {
 
       return toPublicServicio(row);
     },
-    remove: async ({ auth, status, params, set }: ServicioDeleteCtx) => {
+    remove: async (ctx: unknown) => {
+      const { auth, status, params, set } = ctx as ServicioDeleteCtx;
       const denied = requireAdmin({ auth: ((auth as unknown) ?? null) as AuthJwtPayload | null, status });
       if (denied) return denied;
 
@@ -123,10 +127,10 @@ export function createServiciosHandlers(deps: ServiciosDeps) {
   };
 }
 
-export function registerServiciosRoutes<App extends { get: unknown }>(app: App): App {
+export function registerServiciosRoutes(app: AnyElysia) {
   const handlers = createServiciosHandlers({ db: defaultDb });
 
-  return (app as any)
+  return app
     .get('/api/servicios', handlers.list)
     .post(
       '/api/servicios',
