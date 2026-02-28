@@ -5,6 +5,7 @@ import { registerAuthRoutes } from './modules/auth';
 import { registerServiciosRoutes } from './modules/servicios';
 import { registerCitasRoutes } from './modules/citas';
 import { registerProfilesRoutes } from './modules/profiles';
+import { registerReferidosRoutes } from './modules/referidos';
 
 type Env = {
   PORT: number;
@@ -68,6 +69,7 @@ registerAuthRoutes(app, authOptions);
 registerServiciosRoutes(app);
 registerCitasRoutes(app);
 registerProfilesRoutes(app);
+registerReferidosRoutes(app);
 
 app.listen(env.PORT);
 
