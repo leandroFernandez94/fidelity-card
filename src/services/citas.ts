@@ -1,90 +1,39 @@
-import { supabase } from './supabase';
-import type { Cita, Servicio } from '../types';
+import { del, get, patch, post } from './api';
+import type { Cita } from '../types';
 
 export const citasService = {
   async getAll(): Promise<Cita[]> {
-    const { data, error } = await supabase
-      .from('citas')
-      .select('*')
-      .order('fecha_hora', { ascending: false });
-    
-    if (error) throw error;
-    return data;
+    return get<Cita[]>('/api/citas');
   },
 
   async getById(id: string): Promise<Cita | null> {
-    const { data, error } = await supabase
-      .from('citas')
-      .select('*')
-      .eq('id', id)
-      .single();
-    
-    if (error) throw error;
-    return data;
+    const citas = await get<Cita[]>('/api/citas');
+    return citas.find((cita) => cita.id === id) ?? null;
   },
 
   async getByClienta(clientaId: string): Promise<Cita[]> {
-    const { data, error } = await supabase
-      .from('citas')
-      .select('*')
-      .eq('clienta_id', clientaId)
-      .order('fecha_hora', { ascending: false });
-    
-    if (error) throw error;
-    return data;
+    return get<Cita[]>(`/api/citas?clienta_id=${clientaId}`);
   },
 
   async create(cita: Omit<Cita, 'id' | 'created_at'>): Promise<Cita> {
-    const { data, error } = await supabase
-      .from('citas')
-      .insert(cita)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data;
+    return post<Cita>('/api/citas', cita);
   },
 
   async update(id: string, updates: Partial<Cita>): Promise<Cita> {
-    const { data, error } = await supabase
-      .from('citas')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data;
+    return patch<Cita>(`/api/citas/${id}`, updates);
   },
 
   async delete(id: string): Promise<void> {
-    const { error } = await supabase
-      .from('citas')
-      .delete()
-      .eq('id', id);
-    
-    if (error) throw error;
+    await del(`/api/citas/${id}`);
   },
 
   async getProximas(fecha: Date = new Date()): Promise<Cita[]> {
-    const { data, error } = await supabase
-      .from('citas')
-      .select('*')
-      .gte('fecha_hora', fecha.toISOString())
-      .order('fecha_hora', { ascending: true });
-    
-    if (error) throw error;
-    return data;
+    const citas = await get<Cita[]>('/api/citas/proximas');
+    const limite = fecha.toISOString();
+    return citas.filter((cita) => cita.fecha_hora >= limite);
   },
 
   async getPendientes(): Promise<Cita[]> {
-    const { data, error } = await supabase
-      .from('citas')
-      .select('*')
-      .in('estado', ['pendiente', 'confirmada'])
-      .order('fecha_hora', { ascending: true });
-    
-    if (error) throw error;
-    return data;
+    return get<Cita[]>('/api/citas/pendientes');
   }
 };
