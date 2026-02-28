@@ -32,13 +32,11 @@ Guia para agentes de codigo en este repositorio. Resume comandos, estilo y regla
   - `components/`: UI reutilizable
   - `pages/`: paginas principales (clienta + admin)
   - `pages/admin/`: vistas de administracion
-  - `services/`: acceso a Supabase
+- `services/`: cliente HTTP al backend
   - `contexts/`: estado global (Auth)
   - `utils/`: helpers
   - `types/`: tipos TS
-- `supabase-setup.sql`: setup completo de DB
-- `SETUP_SUPABASE.md`: guia paso a paso
-- `opencode.json`: MCP Supabase en read-only
+- `docker-compose.yml`: Postgres local para dev
 
 ## Estilo de codigo (TypeScript/React)
 
@@ -80,14 +78,13 @@ Guia para agentes de codigo en este repositorio. Resume comandos, estilo y regla
   - `primary`, `secondary`, `accent` definidos en `src/index.css`
 - Respetar estilos responsive existentes (usar `md`, `lg` en grid).
 
-## Acceso a datos (Supabase)
+## Acceso a datos (API)
 
-- Cliente en `src/services/supabase.ts`.
+- Cliente HTTP en `src/services/api.ts`.
 - Servicios CRUD en `src/services/*`.
 - Manejo de errores:
   - lanzar error en servicios
   - capturar en componentes con `try/catch`
-- No usar `service_role` en frontend.
 
 ## Autenticacion
 
@@ -136,14 +133,11 @@ Guia para agentes de codigo en este repositorio. Resume comandos, estilo y regla
 
 ## Base de datos
 
-- Script principal: `supabase-setup.sql`
-- Verificacion: `verify-setup.sql`
-- Comandos utiles: `sql-commands.sql`
-- Crear admin: `create-admin-safe.sql`
+- Postgres local via `docker-compose.yml`
+- Migraciones en `apps/api/drizzle/`
 
 ## MCPs disponibles
 
-- `supabase` (remote, read_only): configurado en `opencode.json`
 - `context7`: documentacion tecnica
 - `filesystem`: operaciones en `/home/leandro` y `/mnt/storage`
 - `docker`: gestion de contenedores
