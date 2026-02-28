@@ -2,7 +2,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { Navbar } from './components/Navbar';
 import Home from './pages/Home';
-import TestSupabase from './pages/TestSupabase';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Servicios from './pages/Servicios';
@@ -28,7 +27,6 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/test" element={<TestSupabase />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           
