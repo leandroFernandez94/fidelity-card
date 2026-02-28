@@ -36,13 +36,13 @@ Validacion: `bun run build` OK.
 ---
 
 ## [17] Clienta: persistencia de sesion al recargar
-**Estado:** todo
+**Estado:** done
 **Descripción:** En la vista de clienta la sesion no persiste: al recargar la pagina vuelve al login. Ajustar el frontend para que al cargar la app se rehidrate la sesion (usando `GET /api/auth/me` con cookie) y mantenga al usuario autenticado si corresponde.
 **Criterios de aceptacion:**
 - Si el usuario tiene cookie valida, al recargar permanece logueado y navega a la vista correcta.
 - Si la cookie expiro/no existe, se redirige a login de forma consistente.
 - No hay flashes largos/loops de redirect (manejo correcto de loading inicial).
-**Comentarios:**
+**Comentarios:** Branch: bugfix-17-persistencia-sesion-clienta. Completado: protegi rutas clienta/admin con guards que esperan la rehidratacion de `AuthContext` (evita volver a login al recargar si hay cookie valida) y redirige a `/login` cuando no hay sesion. Login/Register ahora vuelven a la ruta original via `location.state.from`. Archivos: `src/components/RequireAuth.tsx`, `src/components/RequireAdmin.tsx`, `src/App.tsx`, `src/pages/Home.tsx`, `src/pages/Login.tsx`, `src/pages/Register.tsx`. Validacion: `bun run build` OK.
 
 ---
 

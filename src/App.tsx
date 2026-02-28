@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { Navbar } from './components/Navbar';
+import RequireAuth from './components/RequireAuth';
+import RequireAdmin from './components/RequireAdmin';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -26,18 +28,88 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route
+            path="/"
+            element={
+              <RequireAuth>
+                <Home />
+              </RequireAuth>
+            }
+          />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           
-          <Route path="/servicios" element={<LayoutWithNav><Servicios /></LayoutWithNav>} />
-          <Route path="/citas" element={<LayoutWithNav><MisCitas /></LayoutWithNav>} />
-          <Route path="/referidos" element={<LayoutWithNav><Referidos /></LayoutWithNav>} />
+          <Route
+            path="/servicios"
+            element={
+              <RequireAuth>
+                <LayoutWithNav>
+                  <Servicios />
+                </LayoutWithNav>
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/citas"
+            element={
+              <RequireAuth>
+                <LayoutWithNav>
+                  <MisCitas />
+                </LayoutWithNav>
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/referidos"
+            element={
+              <RequireAuth>
+                <LayoutWithNav>
+                  <Referidos />
+                </LayoutWithNav>
+              </RequireAuth>
+            }
+          />
           
-          <Route path="/admin" element={<LayoutWithNav><AdminDashboard /></LayoutWithNav>} />
-          <Route path="/admin/clientas" element={<LayoutWithNav><AdminClientas /></LayoutWithNav>} />
-          <Route path="/admin/citas" element={<LayoutWithNav><AdminCitas /></LayoutWithNav>} />
-          <Route path="/admin/servicios" element={<LayoutWithNav><AdminServicios /></LayoutWithNav>} />
+          <Route
+            path="/admin"
+            element={
+              <RequireAdmin>
+                <LayoutWithNav>
+                  <AdminDashboard />
+                </LayoutWithNav>
+              </RequireAdmin>
+            }
+          />
+          <Route
+            path="/admin/clientas"
+            element={
+              <RequireAdmin>
+                <LayoutWithNav>
+                  <AdminClientas />
+                </LayoutWithNav>
+              </RequireAdmin>
+            }
+          />
+          <Route
+            path="/admin/citas"
+            element={
+              <RequireAdmin>
+                <LayoutWithNav>
+                  <AdminCitas />
+                </LayoutWithNav>
+              </RequireAdmin>
+            }
+          />
+          <Route
+            path="/admin/servicios"
+            element={
+              <RequireAdmin>
+                <LayoutWithNav>
+                  <AdminServicios />
+                </LayoutWithNav>
+              </RequireAdmin>
+            }
+          />
         </Routes>
       </Router>
     </AuthProvider>

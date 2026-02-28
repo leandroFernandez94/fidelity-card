@@ -1,32 +1,20 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import LoadingSpinner from '../components/LoadingSpinner';
 
 export default function Home() {
-  const { user, profile, loading } = useAuth();
+  const { profile } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading) {
-      if (!user || !profile) {
-        return;
-      }
-      if (profile.rol === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate('/citas');
-      }
-    }
-  }, [loading, user, profile, navigate]);
+    if (!profile) return;
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size={48} />
-      </div>
-    );
-  }
+    if (profile.rol === 'admin') {
+      navigate('/admin', { replace: true });
+    } else {
+      navigate('/citas', { replace: true });
+    }
+  }, [profile, navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center p-4">
