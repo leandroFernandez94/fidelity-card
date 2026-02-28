@@ -13,7 +13,7 @@ Sistema de gestión de citas y fidelización para salón de manicura.
 - **Estadísticas** de citas y puntos
 
 ### Clienta ✅
-- **Registro y Login** con autenticación Supabase
+- **Registro y Login** con autenticación propia
 - **Mis Citas** (ver próximas y pasadas)
 - **Catálogo de Servicios** (ver todos los servicios disponibles)
 - **Referir Amigas** (formulario de invitación y compartir enlace)
@@ -24,39 +24,29 @@ Sistema de gestión de citas y fidelización para salón de manicura.
 - **Sistema de Puntos** (calcula por servicios)
 - **Autenticación completa** con roles (admin/clienta)
 - **Navbar adaptativo** según rol y dispositivo móvil
-- **Row Level Security** en Supabase
-- **SQL completo** con triggers, RLS y políticas
 
 ## 📋 Guía de Configuración
 
-La guía completa de configuración de Supabase está disponible en:
-**[SETUP_SUPABASE.md](./SETUP_SUPABASE.md)**
-
-### Resumen rápido:
-
-1. **Crear cuenta en Supabase**: https://supabase.com
-2. **Crear nuevo proyecto**: "fidelity-card"
-3. **Copiar credenciales**: Settings → API (URL y anon key)
-4. **Configurar .env**: Reemplazar con tus credenciales
-5. **Ejecutar script SQL**: `supabase-setup.sql` en SQL Editor
-6. **Crear usuario admin**: Authentication → Add user
-7. **Asignar rol admin**: `UPDATE profiles SET rol = 'admin' WHERE email = '...'`
+1. **Levantar Postgres**: `docker compose up -d`
+2. **Configurar `.env`**: completar `DATABASE_URL` y `JWT_SECRET`
+3. **Correr migraciones**: `bun run db:migrate`
+4. **Levantar API**: `bun run api:dev`
+5. **Levantar frontend**: `bun run dev`
 
 ## 📁 Archivos de Configuración
 
 | Archivo | Descripción |
 |---------|-------------|
-| `supabase-setup.sql` | Script completo de setup de Supabase |
-| `verify-setup.sql` | Script de verificación de configuración |
-| `sql-commands.sql` | Comandos SQL útiles para administración |
-| `create-admin.sql` | Script para crear usuario admin desde SQL |
-| `SETUP_SUPABASE.md` | Guía paso a paso completa |
+| `docker-compose.yml` | Postgres local para desarrollo |
+| `drizzle.config.ts` | Configuración de migraciones |
+| `.env.example` | Plantilla de variables |
 
 ## 🛠️ Stack Tecnológico
 
 - **Frontend**: React 19 + Vite + TypeScript
 - **Routing**: React Router v7
-- **Backend/Database**: Supabase
+- **Backend**: Bun + Elysia
+- **Base de datos**: Postgres (Docker) + Drizzle ORM
 - **Estilos**: Tailwind CSS v4
 - **Formularios**: React Hook Form
 - **Íconos**: Lucide React
@@ -70,17 +60,17 @@ La guía completa de configuración de Supabase está disponible en:
 bun install
 ```
 
-3. Configurar Supabase (ver [SETUP_SUPABASE.md](./SETUP_SUPABASE.md)):
-   - Crear proyecto en https://supabase.com
-   - Ejecutar script `supabase-setup.sql`
-   - Configurar archivo `.env` con credenciales
+3. Configurar entorno:
+   - Copiar `.env.example` a `.env`
+   - Ajustar `DATABASE_URL` y `JWT_SECRET`
+   - Levantar Postgres con `docker compose up -d`
 
 4. Iniciar servidor de desarrollo:
 ```bash
 bun run dev
 ```
 
-## 🗄️ Estructura SQL del Proyecto
+## 🗄️ Estructura de Datos
 
 ### Tablas Principales
 
@@ -105,30 +95,8 @@ citas (1) ─── (N) recordatorios
 
 ## 🔐 Seguridad
 
-### Row Level Security (RLS)
-- ✅ Clientas solo ven sus propios datos
-- ✅ Admins ven todos los datos
-- ✅ Políticas granulares por tabla
-- ✅ Protección contra accesos no autorizados
-
-### Políticas Implementadas
-
-#### Perfiles
-- Users can read/update own profile
-- Admins can read/update all profiles
-
-#### Servicios
-- Public read (todos pueden leer)
-- Admins can insert/update/delete
-
-#### Citas
-- Users can read own citas
-- Admins can read/insert/update/delete all citas
-
-#### Referidos y Premios
-- Users can read own referidos
-- Admins can read all
-- Public read premios
+- Autenticación propia con JWT en cookie httpOnly
+- Roles `admin`/`clienta` validados en el backend
 
 ## 🚀 Scripts
 
@@ -170,8 +138,8 @@ src/
 │   ├── Citas.tsx
 │   └── Servicios.tsx
 ├── hooks/             # Custom hooks
-├── services/          # Conexión con Supabase
-│   ├── supabase.ts
+├── services/          # Cliente HTTP al backend
+│   ├── api.ts
 │   ├── profiles.ts
 │   ├── servicios.ts
 │   ├── citas.ts
@@ -185,12 +153,9 @@ src/
     └── index.ts
 
 # Archivos de configuración
-supabase-setup.sql     # Script principal de setup
-verify-setup.sql      # Script de verificación
-sql-commands.sql      # Comandos útiles
-create-admin.sql      # Crear usuario admin
-SETUP_SUPABASE.md     # Guía completa
-.env.example          # Plantilla de variables
+ docker-compose.yml   # Postgres local
+ drizzle.config.ts    # Migraciones Drizzle
+ .env.example         # Plantilla de variables
 ```
 
 ## 📊 Modelos de Datos
@@ -248,10 +213,7 @@ SETUP_SUPABASE.md     # Guía completa
 
 ## 🔗 Enlaces Útiles
 
-- [Guía de Configuración](./SETUP_SUPABASE.md)
 - [Documentación de API](./API.md)
-- [SQL Commands Útiles](./sql-commands.sql)
-- [Supabase Dashboard](https://supabase.com/dashboard)
 
 ## 📄 Licencia
 
