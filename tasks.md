@@ -10,7 +10,7 @@
 ## [2] Backend scaffold: Bun + Elysia base
 **Estado:** todo
 **Descripción:** Crear el proyecto de API en una carpeta dedicada (ej. `apps/api/`). Agregar servidor Elysia con `GET /api/health`, manejo basico de errores, lectura de env (`PORT`, `NODE_ENV`).
-**Comentarios:**
+**Comentarios:** Desbloqueado: Bun instalado en el server (ruta `~/.bun/bin/bun`).
 
 ---
 
