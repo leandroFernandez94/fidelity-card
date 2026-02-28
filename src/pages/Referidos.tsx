@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { referidosService } from '../services/referidos';
 import type { Referido } from '../types';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../components/Card';
+import { Card, CardHeader, CardTitle, CardContent } from '../components/Card';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { UserPlus, Gift, Users, CheckCircle } from 'lucide-react';
 
 export default function Referidos() {
-  const { profile, refreshProfile } = useAuth();
+  const { profile } = useAuth();
   const [referidos, setReferidos] = useState<Referido[]>([]);
   const [loading, setLoading] = useState(true);
   const [enviando, setEnviando] = useState(false);

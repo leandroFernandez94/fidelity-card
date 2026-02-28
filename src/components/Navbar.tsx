@@ -7,7 +7,6 @@ import { useState } from 'react';
 export function Navbar() {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   async function handleSignOut() {
@@ -84,18 +83,53 @@ export function Navbar() {
         {mobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-gray-200">
             <div className="flex flex-col gap-3">
-              <MobileNavLink to="/" icon={<Home size={18} />} label="Inicio" />
+              <MobileNavLink
+                to="/"
+                icon={<Home size={18} />}
+                label="Inicio"
+                onNavigate={() => setMobileMenuOpen(false)}
+              />
               {isAdmin ? (
                 <>
-                  <MobileNavLink to="/admin/clientas" icon={<Users size={18} />} label="Clientas" />
-                  <MobileNavLink to="/admin/citas" icon={<Calendar size={18} />} label="Citas" />
-                  <MobileNavLink to="/admin/servicios" icon={<Gem size={18} />} label="Servicios" />
+                  <MobileNavLink
+                    to="/admin/clientas"
+                    icon={<Users size={18} />}
+                    label="Clientas"
+                    onNavigate={() => setMobileMenuOpen(false)}
+                  />
+                  <MobileNavLink
+                    to="/admin/citas"
+                    icon={<Calendar size={18} />}
+                    label="Citas"
+                    onNavigate={() => setMobileMenuOpen(false)}
+                  />
+                  <MobileNavLink
+                    to="/admin/servicios"
+                    icon={<Gem size={18} />}
+                    label="Servicios"
+                    onNavigate={() => setMobileMenuOpen(false)}
+                  />
                 </>
               ) : (
                 <>
-                  <MobileNavLink to="/citas" icon={<Calendar size={18} />} label="Mis Citas" />
-                  <MobileNavLink to="/servicios" icon={<Gem size={18} />} label="Servicios" />
-                  <MobileNavLink to="/referidos" icon={<User size={18} />} label="Referidos" />
+                  <MobileNavLink
+                    to="/citas"
+                    icon={<Calendar size={18} />}
+                    label="Mis Citas"
+                    onNavigate={() => setMobileMenuOpen(false)}
+                  />
+                  <MobileNavLink
+                    to="/servicios"
+                    icon={<Gem size={18} />}
+                    label="Servicios"
+                    onNavigate={() => setMobileMenuOpen(false)}
+                  />
+                  <MobileNavLink
+                    to="/referidos"
+                    icon={<User size={18} />}
+                    label="Referidos"
+                    onNavigate={() => setMobileMenuOpen(false)}
+                  />
                 </>
               )}
               <div className="pt-3 border-t border-gray-200 mt-3">
@@ -141,14 +175,24 @@ function NavLink({ to, icon, label }: { to: string; icon: React.ReactNode; label
   );
 }
 
-function MobileNavLink({ to, icon, label }: { to: string; icon: React.ReactNode; label: string }) {
+function MobileNavLink({
+  to,
+  icon,
+  label,
+  onNavigate,
+}: {
+  to: string;
+  icon: React.ReactNode;
+  label: string;
+  onNavigate: () => void;
+}) {
   const location = useLocation();
   const isActive = location.pathname === to;
 
   return (
     <Link
       to={to}
-      onClick={() => setMobileMenuOpen(false)}
+      onClick={onNavigate}
       className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
         isActive
           ? 'bg-primary text-white'

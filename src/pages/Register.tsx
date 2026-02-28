@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
@@ -8,7 +8,8 @@ import { UserPlus } from 'lucide-react';
 
 export default function Register() {
   const navigate = useNavigate();
-  const { signUp } = useAuth();
+  const location = useLocation();
+  const { signUp, user, profile, loading: authLoading } = useAuth();
   const [formData, setFormData] = useState({
     nombre: '',
     apellido: '',
@@ -18,6 +19,14 @@ export default function Register() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (user && profile) {
+      const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
+      navigate(from || '/', { replace: true });
+    }
+  }, [authLoading, user, profile, location.state, navigate]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setFormData({
@@ -45,7 +54,8 @@ export default function Register() {
       return;
     }
 
-    navigate('/');
+    const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
+    navigate(from || '/', { replace: true });
   }
 
   return (

@@ -2,22 +2,21 @@ import { useState, useEffect } from 'react';
 import { citasService } from '../../services/citas';
 import { profilesService } from '../../services/profiles';
 import type { Cita, Profile } from '../../types';
-import { Card, CardHeader, CardTitle, CardContent } from '../../components/Card';
+import { Card, CardContent } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { Select } from '../../components/Select';
-import { Calendar, Clock, User, Plus, Filter, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, User, Plus, Filter, CheckCircle, XCircle } from 'lucide-react';
 import { formatearFecha, formatearHora, getEstadoCitaColor, esFechaPasada } from '../../utils';
+
+type CitaEstado = Cita['estado'];
 
 export default function AdminCitas() {
   const [citas, setCitas] = useState<Cita[]>([]);
   const [clientas, setClientas] = useState<Profile[]>([]);
   const [filteredCitas, setFilteredCitas] = useState<Cita[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filtro, setFiltro] = useState({
-    estado: '',
-    fecha: ''
-  });
+  const [filtro, setFiltro] = useState<{ estado: CitaEstado | ''; fecha: string }>({ estado: '', fecha: '' });
 
   useEffect(() => {
     async function loadData() {
@@ -42,7 +41,7 @@ export default function AdminCitas() {
     let filtered = citas;
 
     if (filtro.estado) {
-      filtered = filtered.filter(cita => cita.estado === filtro.estado);
+      filtered = filtered.filter((cita) => cita.estado === filtro.estado);
     }
 
     if (filtro.fecha) {
@@ -58,20 +57,23 @@ export default function AdminCitas() {
     return clientas.find(c => c.id === id);
   }
 
-  function handleFiltroChange(key: string, value: string) {
-    setFiltro(prev => ({ ...prev, [key]: value }));
+  function handleFiltroChange(key: 'estado' | 'fecha', value: string) {
+    if (key === 'estado') {
+      setFiltro((prev) => ({ ...prev, estado: (value || '') as CitaEstado | '' }));
+      return;
+    }
+
+    setFiltro((prev) => ({ ...prev, fecha: value }));
   }
 
   function limpiarFiltros() {
     setFiltro({ estado: '', fecha: '' });
   }
 
-  async function actualizarEstado(citaId: string, nuevoEstado: string) {
+  async function actualizarEstado(citaId: string, nuevoEstado: CitaEstado) {
     try {
       await citasService.update(citaId, { estado: nuevoEstado });
-      const updated = citas.map(cita =>
-        cita.id === citaId ? { ...cita, estado: nuevoEstado } : cita
-      );
+      const updated = citas.map((cita) => (cita.id === citaId ? { ...cita, estado: nuevoEstado } : cita));
       setCitas(updated);
     } catch (error) {
       console.error('Error al actualizar estado:', error);
@@ -114,7 +116,6 @@ export default function AdminCitas() {
               <div className="flex-1">
                 <Select
                   id="estado"
-                  placeholder="Filtrar por estado"
                   options={[
                     { value: 'pendiente', label: 'Pendiente' },
                     { value: 'confirmada', label: 'Confirmada' },
