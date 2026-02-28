@@ -143,12 +143,12 @@
 ---
 
 ## [12] Frontend: migrar services (profiles/servicios/citas/referidos/puntos)
-**Estado:** todo
+**Estado:** done
 **Descripción:** (Refactor FE -> API) Reemplazar `src/services/*.ts` para llamar a la nueva API (usando `api.ts`) en lugar de Supabase. Ajustar paginas si cambia algun payload/respuesta.
 **Contexto:** Files actuales a migrar: `src/services/profiles.ts`, `src/services/servicios.ts`, `src/services/citas.ts`, `src/services/referidos.ts`, `src/services/puntos.ts`.
 **Entregables:** servicios reescritos apuntando al BE; actualizar paginas que dependan de querys especificas (pendientes/proximas/top).
 **Criterios de aceptacion:** app funciona en dev sin `VITE_SUPABASE_*` y sin llamadas a Supabase.
-**Comentarios:**
+**Comentarios:** Branch: feature-12-frontend-migrar-services. Completado: servicios FE ahora usan `api.ts` y endpoints `/api/*` (servicios, citas, profiles, referidos, puntos). Se removieron accesos directos a Supabase en servicios. Tests: ⚠️ `npm test` no configurado (script inexistente).
 
 ---
 
