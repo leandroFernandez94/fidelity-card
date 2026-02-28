@@ -153,11 +153,11 @@
 ---
 
 ## [13] Limpieza: remover Supabase del frontend
-**Estado:** todo
+**Estado:** done
 **Descripción:** (Refactor final) Eliminar integracion Supabase del frontend: borrar `src/services/supabase.ts` y `src/pages/TestSupabase.tsx` (o reemplazar por test API). Quitar `@supabase/supabase-js` del `package.json` cuando no haya imports.
 **Entregables:** remover archivos + remover dependency + limpiar env vars Supabase.
 **Criterios de aceptacion:** `bun run build` y `bun run lint` pasan sin Supabase.
-**Comentarios:**
+**Comentarios:** Branch: maintenance-13-limpieza-supabase-frontend. Completado: eliminados `src/services/supabase.ts` y `src/pages/TestSupabase.tsx`, removida ruta `/test` y dependencia `@supabase/supabase-js`, y limpiadas vars Supabase de `.env.example`. Tests: ⚠️ `npm test` no configurado (script inexistente).
 
 ---
 
