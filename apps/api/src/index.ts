@@ -1,6 +1,8 @@
 import { Elysia } from 'elysia';
 
-import { authModule, requireAdmin, requireAuth } from './modules/auth';
+import { authContextModule, requireAdmin, requireAuth } from './modules/auth-context';
+import { registerAuthRoutes } from './modules/auth';
+import { registerServiciosRoutes } from './modules/servicios';
 
 type Env = {
   PORT: number;
@@ -32,6 +34,11 @@ function getEnv(): Env {
 
 const env = getEnv();
 
+const authOptions = {
+  jwtSecret: env.JWT_SECRET,
+  nodeEnv: env.NODE_ENV,
+} as const;
+
 const app = new Elysia()
   .onError(({ code, error, set }) => {
     if (env.NODE_ENV !== 'test') {
@@ -43,26 +50,22 @@ const app = new Elysia()
       error: 'internal_server_error'
     };
   })
-  .use(
-    authModule({
-      jwtSecret: env.JWT_SECRET,
-      nodeEnv: env.NODE_ENV,
-    })
-  )
+  .use(authContextModule(authOptions))
   .get('/api/health', () => ({ ok: true }))
   .get('/api/_protected', ({ auth, status }) => {
-    const denied = requireAuth({ auth, status });
-    if (denied) return denied;
-
+    if (!auth) return status(401, { error: 'unauthorized' });
     return { ok: true, sub: auth.sub, rol: auth.rol };
   })
   .get('/api/_admin', ({ auth, status }) => {
-    const denied = requireAdmin({ auth, status });
-    if (denied) return denied;
-
+    if (!auth) return status(401, { error: 'unauthorized' });
+    if (auth.rol !== 'admin') return status(403, { error: 'forbidden' });
     return { ok: true };
-  })
-  .listen(env.PORT);
+  });
+
+registerAuthRoutes(app, authOptions);
+registerServiciosRoutes(app);
+
+app.listen(env.PORT);
 
 if (env.NODE_ENV !== 'test') {
   // eslint-disable-next-line no-console
