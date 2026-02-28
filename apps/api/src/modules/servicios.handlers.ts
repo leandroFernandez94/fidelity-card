@@ -1,5 +1,3 @@
-import { t } from 'elysia';
-import type { AnyElysia } from 'elysia';
 import { asc, eq } from 'drizzle-orm';
 
 import { db as defaultDb } from '../db';
@@ -52,13 +50,15 @@ export type ServicioDeleteCtx = {
   set: { status?: number | string };
 };
 
-export function createServiciosHandlers(deps: ServiciosDeps) {
+/** Handlers HTTP para CRUD de servicios. */
+export function createServiciosHttpHandlers(deps: ServiciosDeps) {
   return {
-    list: async () => {
+    listServicios: async () => {
       const rows = await deps.db.select().from(servicios).orderBy(asc(servicios.nombre));
       return rows.map(toPublicServicio);
     },
-    create: async (ctx: unknown) => {
+
+    createServicio: async (ctx: unknown) => {
       const { auth, status, body, set } = ctx as ServicioCreateCtx;
       const denied = requireAdmin({ auth: ((auth as unknown) ?? null) as AuthJwtPayload | null, status });
       if (denied) return denied;
@@ -83,7 +83,8 @@ export function createServiciosHandlers(deps: ServiciosDeps) {
       set.status = 201;
       return toPublicServicio(row);
     },
-    patch: async (ctx: unknown) => {
+
+    patchServicio: async (ctx: unknown) => {
       const { auth, status, params, body, set } = ctx as ServicioPatchCtx;
       const denied = requireAdmin({ auth: ((auth as unknown) ?? null) as AuthJwtPayload | null, status });
       if (denied) return denied;
@@ -110,7 +111,8 @@ export function createServiciosHandlers(deps: ServiciosDeps) {
 
       return toPublicServicio(row);
     },
-    remove: async (ctx: unknown) => {
+
+    deleteServicio: async (ctx: unknown) => {
       const { auth, status, params, set } = ctx as ServicioDeleteCtx;
       const denied = requireAdmin({ auth: ((auth as unknown) ?? null) as AuthJwtPayload | null, status });
       if (denied) return denied;
@@ -127,50 +129,7 @@ export function createServiciosHandlers(deps: ServiciosDeps) {
   };
 }
 
-export function registerServiciosRoutes(app: AnyElysia) {
-  const handlers = createServiciosHandlers({ db: defaultDb });
+export type ServiciosHttpHandlers = ReturnType<typeof createServiciosHttpHandlers>;
 
-  return app
-    .get('/api/servicios', handlers.list)
-    .post(
-      '/api/servicios',
-      handlers.create,
-      {
-        body: t.Object({
-          nombre: t.String({ minLength: 1 }),
-          descripcion: t.String(),
-          precio: t.Integer({ minimum: 0 }),
-          duracion_min: t.Integer({ minimum: 1 }),
-          puntos_otorgados: t.Integer({ minimum: 0 }),
-        }),
-      }
-    )
-    .patch(
-      '/api/servicios/:id',
-      handlers.patch,
-      {
-        params: t.Object({
-          id: t.String({ format: 'uuid' }),
-        }),
-        body: t.Object(
-          {
-            nombre: t.Optional(t.String({ minLength: 1 })),
-            descripcion: t.Optional(t.String()),
-            precio: t.Optional(t.Integer({ minimum: 0 })),
-            duracion_min: t.Optional(t.Integer({ minimum: 1 })),
-            puntos_otorgados: t.Optional(t.Integer({ minimum: 0 })),
-          },
-          { minProperties: 1 }
-        ),
-      }
-    )
-    .delete(
-      '/api/servicios/:id',
-      handlers.remove,
-      {
-        params: t.Object({
-          id: t.String({ format: 'uuid' }),
-        }),
-      }
-    );
-}
+// Back-compat alias.
+export const createServiciosHandlers = createServiciosHttpHandlers;
