@@ -7,6 +7,9 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Bun
+bun.lockb
+
 node_modules
 dist
 dist-ssr
@@ -21,6 +24,9 @@ opencode.json
 
 # Local DB / docker
 .env.docker
+
+# npm
+package-lock.json
 
 # Editor directories and files
 .vscode/*

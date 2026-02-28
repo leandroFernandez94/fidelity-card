@@ -17,7 +17,7 @@
 ---
 
 ## [3] DB schema + migraciones: Drizzle + Postgres
-**Estado:** todo
+**Estado:** done
 **Descripción:** (Refactor Supabase -> BE propio) Definir esquema Drizzle para `users`, `profiles`, `servicios`, `citas`, `referidos`, `premios`, `recordatorios` en Postgres Docker (MVP, sin RLS/policies, sin triggers y sin indices extra). Configurar migraciones y comando para aplicarlas.
 **Contexto:** Hoy el FE asume las formas de `src/types/index.ts` y los services hacen CRUD directo en Supabase (`src/services/*.ts`). Queremos replicar esas tablas en Postgres local y que el BE exponga APIs equivalentes.
 **Alcance MVP (decisiones):**
@@ -31,7 +31,7 @@
 - `db:migrate` aplica migraciones sobre el Postgres Docker sin errores.
 - El esquema refleja los tipos de `src/types/index.ts` (campos y enums) sin depender de Supabase.
 **Notas de migracion desde Supabase:** no traer triggers/RLS/indices del `supabase-setup.sql` (se dejan fuera por ahora).
-**Comentarios:**
+**Comentarios:** Completado: agregue schema Drizzle para 7 tablas + enums (rol, cita_estado) y configure drizzle-kit con migraciones. Incluye scripts `db:generate`/`db:migrate` y smoke `db:smoke` usando `.env.example` (probado con `bun run ...`). Migraciones aplican OK contra Postgres Docker. Archivos: `drizzle.config.ts`, `apps/api/src/db/schema/*`, `apps/api/src/db/index.ts`, `apps/api/drizzle/*`, `scripts/smoke-db.mjs`, `package.json`, `BUN.md`.
 
 ---
 
@@ -156,7 +156,7 @@
 **Estado:** todo
 **Descripción:** (Refactor final) Eliminar integracion Supabase del frontend: borrar `src/services/supabase.ts` y `src/pages/TestSupabase.tsx` (o reemplazar por test API). Quitar `@supabase/supabase-js` del `package.json` cuando no haya imports.
 **Entregables:** remover archivos + remover dependency + limpiar env vars Supabase.
-**Criterios de aceptacion:** `npm run build` y `npm run lint` pasan sin Supabase.
+**Criterios de aceptacion:** `bun run build` y `bun run lint` pasan sin Supabase.
 **Comentarios:**
 
 ---
