@@ -4,7 +4,8 @@ import { eq } from 'drizzle-orm';
 
 import { db } from '../db';
 import { profiles, users } from '../db/schema';
-import { toPublicProfile, toPublicUser } from '../domain/transformers/auth';
+import { toPublicUser } from '../domain/transformers/auth';
+import { toPublicProfile } from '../domain/transformers/profiles';
 import type { Rol, SigninBody, SignupBody } from '../domain/types/auth';
 
 import type { StatusHelper } from '../domain/types/http';

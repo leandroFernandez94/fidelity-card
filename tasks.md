@@ -85,7 +85,7 @@
 ---
 
 ## [7] API de negocio: profiles
-**Estado:** todo
+**Estado:** done
 **Descripción:** (Refactor Supabase profiles -> API) Implementar `GET /api/profiles?rol=clienta` (admin) y `GET/PATCH /api/profiles/:id` (propio o admin). Mantener forma de datos compatible con `src/types/index.ts`.
 **Contexto:** Hoy `src/services/profiles.ts` lista y actualiza perfiles; el admin ve clientas por rol.
 **Entregables:** endpoints + permisos + validacion.
@@ -93,7 +93,7 @@
 - Admin puede listar por rol.
 - Usuario puede leer/editar su perfil (no puede auto-elevase a admin).
 - Shape compat con `Profile`.
-**Comentarios:**
+**Comentarios:** Branch: feature-7-api-negocio-profiles. Completado: endpoints `/api/profiles` (admin con filtro por rol) y `/api/profiles/:id` (get/patch) con permisos por rol/propietario y validacion. Agregue transformer `toPublicProfile`. Archivos: `apps/api/src/modules/profiles.ts`, `apps/api/src/domain/transformers/profiles.ts`, `apps/api/src/domain/transformers/auth.ts`, `apps/api/src/modules/auth.ts`, `apps/api/src/index.ts`. Tests: ⚠️ sin framework configurado en este repo, no se agregaron tests automatizados.
 
 ---
 

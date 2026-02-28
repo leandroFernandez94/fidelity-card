@@ -4,6 +4,7 @@ import { authContextModule, requireAdmin, requireAuth } from './modules/auth-con
 import { registerAuthRoutes } from './modules/auth';
 import { registerServiciosRoutes } from './modules/servicios';
 import { registerCitasRoutes } from './modules/citas';
+import { registerProfilesRoutes } from './modules/profiles';
 
 type Env = {
   PORT: number;
@@ -66,6 +67,7 @@ const app = new Elysia()
 registerAuthRoutes(app, authOptions);
 registerServiciosRoutes(app);
 registerCitasRoutes(app);
+registerProfilesRoutes(app);
 
 app.listen(env.PORT);
 
