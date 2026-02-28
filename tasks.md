@@ -111,11 +111,11 @@
 ---
 
 ## [9] Frontend: Vite proxy /api -> API
-**Estado:** todo
+**Estado:** done
 **Descripción:** (Refactor con cookie httpOnly) Configurar `vite.config.ts` para proxyear `/api` a `http://localhost:3001` en dev. Objetivo: evitar CORS y permitir auth por cookie `httpOnly` via mismo origin.
 **Entregables:** config proxy en `vite.config.ts`.
 **Criterios de aceptacion:** llamadas a `/api/*` desde el FE funcionan en dev sin CORS y con cookies (`credentials: include`).
-**Comentarios:**
+**Comentarios:** Branch: feature-9-vite-proxy-api. Completado: configure proxy `/api` -> `http://localhost:3001` en Vite dev. Archivos: `vite.config.ts`. Tests: ⚠️ `npm test` no configurado (script inexistente).
 
 ---
 
