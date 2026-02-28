@@ -120,13 +120,13 @@
 ---
 
 ## [10] Frontend: HTTP client base (fetch)
-**Estado:** todo
+**Estado:** done
 **Descripción:** (Refactor FE -> API) Crear `src/services/api.ts` como wrapper de `fetch` para el nuevo BE, mandando `credentials: 'include'` (cookie httpOnly), manejando JSON y normalizando errores (especialmente 401).
 **Entregables:** `api.ts` con helpers `get/post/patch/delete`.
 **Criterios de aceptacion:**
 - Todas las requests incluyen `credentials: 'include'`.
 - Error handling consistente (throw con mensaje util; detectar `401` para flujo de logout).
-**Comentarios:**
+**Comentarios:** Branch: feature-10-frontend-http-client-base. Completado: agregue wrapper `api.ts` con helpers `get/post/patch/delete`, manejo consistente de JSON, errores tipados (`ApiError`) y helper `isUnauthorized` (401). Archivos: `src/services/api.ts`. Tests: ⚠️ `npm test` no configurado (script inexistente).
 
 ---
 
