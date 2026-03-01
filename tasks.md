@@ -266,3 +266,17 @@ Completado: se implemento el CRUD de premios en el backend y frontend, incluyend
 **Criterios de aceptacion:**
 - La aplicación funciona correctamente tras el renombrado masivo.
 - El código sigue una convención de nomenclatura 100% en inglés.
+
+---
+
+## [24] UI: Rebranding y ajuste de paleta de colores
+**Estado:** done
+**Descripción:** Actualizar la identidad visual de la aplicación.
+- Cambiar el título de la página de `Manicura Premium` a `Calixta Lab`.
+- Ajustar la paleta de colores basada en el color `#223FA0` (Azul principal) junto con blanco y negro como colores secundarios.
+- Asegurar que el logo/texto en el header y title de la pestaña reflejen el nuevo nombre.
+**Criterios de aceptacion:**
+- El nombre `Calixta Lab` es visible en el header y en el `<title>` de la página.
+- La UI utiliza predominantemente `#223FA0`, blanco y negro.
+- Consistencia en botones, fondos y acentos.
+**Comentarios:** Branch: feature-24-rebranding-calixta-lab. Completado: actualizado nombre a Calixta Lab, ajustada paleta de colores (Azul #223FA0, Negro, Blanco) e integrados los nuevos logos en Navbar, Login y Register.

@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Button } from './Button';
 import { Home, Calendar, Users, Gem, LogOut, User, Menu, X, Gift } from 'lucide-react';
 import { useState } from 'react';
+import logoBlue from '../assets/logo-white-bg.png';
 
 export function Navbar() {
   const { user, profile, signOut } = useAuth();
@@ -26,10 +27,8 @@ export function Navbar() {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center gap-2">
             <Link to="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <Gem className="w-5 h-5 text-white" />
-              </div>
-              <span className="font-bold text-xl text-gray-900">Manicura Premium</span>
+              <img src={logoBlue} alt="Calixta Lab" className="w-8 h-8 object-contain" />
+              <span className="font-bold text-xl text-gray-900">Calixta Lab</span>
             </Link>
           </div>
 
