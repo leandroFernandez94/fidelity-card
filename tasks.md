@@ -209,11 +209,12 @@ Validacion: `bun run build` OK.
 ---
 
 ## [19] Bug: Editar clienta no funciona
-**Estado:** pending
+**Estado:** done
 **Descripción:** Al presionar el botón de editar en la lista de clientas (Admin), la aplicación no realiza ninguna acción. Identificar si es un problema de eventos, rutas o del modal.
 **Criterios de aceptacion:**
 - Al hacer clic en editar, se abre el formulario/modal con los datos de la clienta.
 - Se pueden guardar cambios y estos se reflejan en la base de datos y la UI.
+**Comentarios:** Branch: bugfix-19-editar-clienta-no-funciona. Completado: implementado modo edición en el modal de detalle de clienta en Admin. Se agregaron estados para manejo de formulario, lógica de guardado llamando a `profilesService.update` y actualización de la lista local. Archivo: `src/pages/admin/Clientas.tsx`.
 
 ---
 
