@@ -68,7 +68,7 @@ export default function AdminClientas() {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'puntos' ? parseInt(value) || 0 : value
+      [name]: name === 'puntos' ? (value === '' ? 0 : parseInt(value)) : value
     }));
   }
 
@@ -226,49 +226,52 @@ export default function AdminClientas() {
                       Información Personal
                     </h3>
                     <div className="space-y-3">
-                      <div>
-                        <label className="text-sm text-gray-600">Nombre</label>
-                        {isEditing ? (
-                          <Input
-                            name="nombre"
-                            value={formData.nombre}
-                            onChange={handleInputChange}
-                            className="mt-1"
-                          />
-                        ) : (
-                          <p className="font-medium">{selectedClienta.nombre}</p>
-                        )}
-                      </div>
-                      <div>
-                        <label className="text-sm text-gray-600">Apellido</label>
-                        {isEditing ? (
-                          <Input
-                            name="apellido"
-                            value={formData.apellido}
-                            onChange={handleInputChange}
-                            className="mt-1"
-                          />
-                        ) : (
-                          <p className="font-medium">{selectedClienta.apellido}</p>
-                        )}
-                      </div>
-                      <div>
-                        <label className="text-sm text-gray-600">Email</label>
-                        <p className="font-medium">{selectedClienta.email}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm text-gray-600">Teléfono</label>
-                        {isEditing ? (
-                          <Input
-                            name="telefono"
-                            value={formData.telefono}
-                            onChange={handleInputChange}
-                            className="mt-1"
-                          />
-                        ) : (
-                          <p className="font-medium">{selectedClienta.telefono}</p>
-                        )}
-                      </div>
+      <div>
+        <label className="text-sm text-gray-600">Nombre</label>
+        {isEditing ? (
+          <Input
+            id="nombre"
+            name="nombre"
+            value={formData.nombre}
+            onChange={handleInputChange}
+            className="mt-1"
+          />
+        ) : (
+          <p className="font-medium">{selectedClienta.nombre}</p>
+        )}
+      </div>
+      <div>
+        <label className="text-sm text-gray-600">Apellido</label>
+        {isEditing ? (
+          <Input
+            id="apellido"
+            name="apellido"
+            value={formData.apellido}
+            onChange={handleInputChange}
+            className="mt-1"
+          />
+        ) : (
+          <p className="font-medium">{selectedClienta.apellido}</p>
+        )}
+      </div>
+      <div>
+        <label className="text-sm text-gray-600">Email</label>
+        <p className="font-medium">{selectedClienta.email}</p>
+      </div>
+      <div>
+        <label className="text-sm text-gray-600">Teléfono</label>
+        {isEditing ? (
+          <Input
+            id="telefono"
+            name="telefono"
+            value={formData.telefono}
+            onChange={handleInputChange}
+            className="mt-1"
+          />
+        ) : (
+          <p className="font-medium">{selectedClienta.telefono}</p>
+        )}
+      </div>
                     </div>
                   </div>
 
@@ -282,6 +285,7 @@ export default function AdminClientas() {
                         {isEditing ? (
                           <div className="space-y-2">
                             <Input
+                              id="puntos"
                               type="number"
                               name="puntos"
                               value={formData.puntos}

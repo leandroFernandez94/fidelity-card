@@ -8,3 +8,8 @@ export const citaEstadoEnum = pgEnum('cita_estado', [
   'completada',
   'cancelada',
 ]);
+
+export const citaServicioTipoEnum = pgEnum('cita_servicio_tipo', [
+  'comprado',
+  'canjeado',
+]);

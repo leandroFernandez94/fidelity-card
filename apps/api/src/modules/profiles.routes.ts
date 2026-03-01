@@ -41,6 +41,7 @@ export function registerProfilesRoutes(app: AnyElysia) {
             apellido: t.Optional(t.String({ minLength: 1 })),
             telefono: t.Optional(t.String({ minLength: 1 })),
             email: t.Optional(t.String({ format: 'email' })),
+            puntos: t.Optional(t.Integer({ minimum: 0 })),
           },
           { minProperties: 1 }
         ),

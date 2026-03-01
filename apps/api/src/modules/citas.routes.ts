@@ -15,7 +15,9 @@ export function registerCitasRoutes(app: AnyElysia) {
       handlers.listCitas,
       {
         query: t.Object({
-          clienta_id: t.Optional(t.String({ format: 'uuid' })),
+          // Soportamos `me` para que el cliente pueda pedir sus propias citas
+          // sin conocer el UUID (p.ej. `/api/citas?clienta_id=me`).
+          clienta_id: t.Optional(t.Union([t.Literal('me'), t.String({ format: 'uuid' })])),
         }),
       }
     )
@@ -30,6 +32,7 @@ export function registerCitasRoutes(app: AnyElysia) {
           servicio_ids: t.Array(t.String({ format: 'uuid' })),
           fecha_hora: t.String({ format: 'date-time' }),
           puntos_ganados: t.Integer({ minimum: 0 }),
+          puntos_utilizados: t.Integer({ minimum: 0 }),
           notas: t.Optional(t.String()),
         }),
       }

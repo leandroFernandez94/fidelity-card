@@ -2,8 +2,9 @@ import type { AnyElysia } from 'elysia';
 import { and, asc, eq, gte, inArray, sql } from 'drizzle-orm';
 
 import { db as defaultDb } from '../db';
-import { citas, profiles } from '../db/schema';
+import { citas, citaServicios, profiles, servicios } from '../db/schema';
 import { decideCitaPatch } from '../domain/logic/citas';
+import { computeCitaTotals, validateCitaItems, type CitaItemInput } from '../domain/logic/citas.items';
 import { patchCitaAtomic, type CitasPatchAtomicTx } from '../domain/logic/citas.patch-atomic';
 import { toPublicCita } from '../domain/transformers/citas';
 import type { CitaEstado } from '../domain/types/citas';
@@ -14,9 +15,8 @@ import type { AuthJwtPayload } from './auth-context';
 
 export type CitaCreateBody = {
   clienta_id: string;
-  servicio_ids: string[];
+  items: CitaItemInput[];
   fecha_hora: string;
-  puntos_ganados: number;
   notas?: string;
 };
 
@@ -153,26 +153,60 @@ export function createCitasHttpHandlers(deps: CitasDeps) {
         return { error: 'unauthorized' };
       }
 
-      const inserted = await deps.db
-        .insert(citas)
-        .values({
-          clienta_id,
-          servicio_ids: body.servicio_ids,
-          fecha_hora: new Date(body.fecha_hora),
-          puntos_ganados: body.puntos_ganados,
-          notas: body.notas,
-          estado: 'pendiente',
-        })
-        .returning();
+      // Obtener maestros de servicios involucrados
+      const servicioIds = body.items.map((it) => it.servicio_id);
+      const masters = await deps.db.select().from(servicios).where(inArray(servicios.id, servicioIds));
 
-      const row = inserted[0];
-      if (!row) {
+      try {
+        validateCitaItems(body.items, masters);
+      } catch (e: any) {
+        set.status = 400;
+        return { error: e.message };
+      }
+
+      const { puntos_ganados, puntos_utilizados } = computeCitaTotals(body.items, masters);
+
+      const inserted = await deps.db.transaction(async (tx) => {
+        const rows = await tx
+          .insert(citas)
+          .values({
+            clienta_id,
+            servicio_ids: servicioIds,
+            fecha_hora: new Date(body.fecha_hora),
+            puntos_ganados,
+            puntos_utilizados,
+            notas: body.notas,
+            estado: 'pendiente',
+          })
+          .returning();
+
+        const row = rows[0];
+        if (!row) throw new Error('Cita not created');
+
+        // Insertar items
+        await tx.insert(citaServicios).values(
+          body.items.map((it) => {
+            const m = masters.find((s) => s.id === it.servicio_id)!;
+            return {
+              cita_id: row.id,
+              servicio_id: it.servicio_id,
+              tipo: it.tipo,
+              puntos_requeridos_snapshot: m.puntos_requeridos,
+              puntos_otorgados_snapshot: m.puntos_otorgados,
+            };
+          })
+        );
+
+        return row;
+      });
+
+      if (!inserted) {
         set.status = 500;
         return { error: 'internal_server_error' };
       }
 
       set.status = 201;
-      return toPublicCita(row);
+      return toPublicCita(inserted);
     },
 
     /**
@@ -241,45 +275,68 @@ export function createCitasHttpHandlers(deps: CitasDeps) {
       const nextNotas = decision.allowNotas ? body.notas : undefined;
       const nextEstado = decision.nextEstado;
 
-      const patched = await deps.db.transaction(async (tx) => {
-        const atomicTx: CitasPatchAtomicTx = {
-          updateCita: async (id, updates) => {
-            const updated = await tx.update(citas).set(updates).where(eq(citas.id, id)).returning();
-            return updated[0] ?? null;
-          },
-          updateCitaIfEstadoIn: async (id, allowedEstados, updates) => {
-            const updated = await tx
-              .update(citas)
-              .set(updates)
-              .where(and(eq(citas.id, id), inArray(citas.estado, [...allowedEstados])))
-              .returning();
-            return updated[0] ?? null;
-          },
-          incrementProfilePoints: async (profileId, delta) => {
-            await tx
-              .update(profiles)
-              .set({
-                puntos: sql<number>`${profiles.puntos} + ${delta}`,
-              })
-              .where(eq(profiles.id, profileId));
-          },
-        };
+      try {
+        const patched = await deps.db.transaction(async (tx) => {
+          const profile = await tx
+            .select({ puntos: profiles.puntos })
+            .from(profiles)
+            .where(eq(profiles.id, cita.clienta_id))
+            .limit(1);
 
-        return patchCitaAtomic({
-          tx: atomicTx,
-          citaId: params.id,
-          nextEstado,
-          nextNotas,
-          awardPoints: decision.awardPoints,
+          const atomicTx: CitasPatchAtomicTx = {
+            updateCita: async (id, updates) => {
+              const updated = await tx.update(citas).set(updates).where(eq(citas.id, id)).returning();
+              return (updated[0] as any) ?? null;
+            },
+            updateCitaIfEstadoIn: async (id, allowedEstados, updates) => {
+              const updated = await tx
+                .update(citas)
+                .set(updates)
+                .where(and(eq(citas.id, id), inArray(citas.estado, [...allowedEstados])))
+                .returning();
+              return (updated[0] as any) ?? null;
+            },
+            incrementProfilePoints: async (profileId, delta) => {
+              await tx
+                .update(profiles)
+                .set({
+                  puntos: sql<number>`${profiles.puntos} + ${delta}`,
+                })
+                .where(eq(profiles.id, profileId));
+            },
+            decrementProfilePoints: async (profileId, delta) => {
+              await tx
+                .update(profiles)
+                .set({
+                  puntos: sql<number>`${profiles.puntos} - ${delta}`,
+                })
+                .where(eq(profiles.id, profileId));
+            },
+          };
+
+          return patchCitaAtomic({
+            tx: atomicTx,
+            citaId: params.id,
+            nextEstado,
+            nextNotas,
+            awardPoints: decision.awardPoints,
+            saldo_actual: profile[0]?.puntos ?? 0,
+          });
         });
-      });
 
-      if (!patched) {
-        set.status = 409;
-        return { error: 'conflict' };
+        if (!patched) {
+          set.status = 409;
+          return { error: 'conflict' };
+        }
+
+        return toPublicCita(patched as any);
+      } catch (e: any) {
+        if (e.message === 'insufficient_points') {
+          set.status = 409;
+          return { error: 'insufficient_points' };
+        }
+        throw e;
       }
-
-      return toPublicCita(patched);
     },
 
     /** Elimina una cita (admin o dueña). */

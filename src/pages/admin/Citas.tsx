@@ -27,14 +27,17 @@ export default function AdminCitas() {
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
-  const [formData, setFormData] = useState<{ clienta_id: string; fecha_hora: string; servicio_ids: string[]; notas: string }>(
-    {
-      clienta_id: '',
-      fecha_hora: '',
-      servicio_ids: [],
-      notas: ''
-    }
-  );
+  const [formData, setFormData] = useState<{
+    clienta_id: string;
+    fecha_hora: string;
+    items: { servicio_id: string; tipo: 'comprado' | 'canjeado' }[];
+    notas: string;
+  }>({
+    clienta_id: '',
+    fecha_hora: '',
+    items: [],
+    notas: ''
+  });
 
   useEffect(() => {
     async function loadData() {
@@ -104,7 +107,7 @@ export default function AdminCitas() {
     setFormData({
       clienta_id: '',
       fecha_hora: toDateTimeLocalValue(base),
-      servicio_ids: [],
+      items: [],
       notas: ''
     });
     setModalOpen(true);
@@ -118,20 +121,36 @@ export default function AdminCitas() {
 
   function toggleServicio(servicioId: string) {
     setFormData((prev) => {
-      const exists = prev.servicio_ids.includes(servicioId);
+      const exists = prev.items.find((it) => it.servicio_id === servicioId);
       return {
         ...prev,
-        servicio_ids: exists
-          ? prev.servicio_ids.filter((id) => id !== servicioId)
-          : [...prev.servicio_ids, servicioId]
+        items: exists
+          ? prev.items.filter((it) => it.servicio_id !== servicioId)
+          : [...prev.items, { servicio_id: servicioId, tipo: 'comprado' }]
       };
     });
   }
 
-  function getPuntosGanados(servicioIds: string[]) {
-    return servicioIds.reduce((acc, id) => {
-      const servicio = servicios.find((s) => s.id === id);
+  function setItemTipo(servicioId: string, tipo: 'comprado' | 'canjeado') {
+    setFormData((prev) => ({
+      ...prev,
+      items: prev.items.map((it) => (it.servicio_id === servicioId ? { ...it, tipo } : it))
+    }));
+  }
+
+  function getPuntosGanados(items: { servicio_id: string; tipo: 'comprado' | 'canjeado' }[]) {
+    return items.reduce((acc, it) => {
+      if (it.tipo !== 'comprado') return acc;
+      const servicio = servicios.find((s) => s.id === it.servicio_id);
       return acc + (servicio?.puntos_otorgados ?? 0);
+    }, 0);
+  }
+
+  function getPuntosUtilizados(items: { servicio_id: string; tipo: 'comprado' | 'canjeado' }[]) {
+    return items.reduce((acc, it) => {
+      if (it.tipo !== 'canjeado') return acc;
+      const servicio = servicios.find((s) => s.id === it.servicio_id);
+      return acc + (servicio?.puntos_requeridos ?? 0);
     }, 0);
   }
 
@@ -147,7 +166,7 @@ export default function AdminCitas() {
         setModalError('Selecciona una clienta.');
         return;
       }
-      if (formData.servicio_ids.length === 0) {
+      if (formData.items.length === 0) {
         setModalError('Selecciona al menos un servicio.');
         return;
       }
@@ -156,12 +175,18 @@ export default function AdminCitas() {
         return;
       }
 
-      const puntos_ganados = getPuntosGanados(formData.servicio_ids);
+      const clienta = getClientaById(formData.clienta_id);
+      const puntos_utilizados = getPuntosUtilizados(formData.items);
+
+      if (puntos_utilizados > (clienta?.puntos ?? 0)) {
+        setModalError('La clienta no tiene suficientes puntos para este canje.');
+        return;
+      }
+
       await citasService.create({
         clienta_id: formData.clienta_id,
-        servicio_ids: formData.servicio_ids,
+        items: formData.items,
         fecha_hora: new Date(formData.fecha_hora).toISOString(),
-        puntos_ganados,
         notas: formData.notas.trim() ? formData.notas.trim() : undefined
       });
 
@@ -417,6 +442,11 @@ export default function AdminCitas() {
                             <span className="font-bold text-primary">
                               +{cita.puntos_ganados} pts
                             </span>
+                            {cita.puntos_utilizados > 0 && (
+                              <span className="font-bold text-red-500">
+                                -{cita.puntos_utilizados} pts
+                              </span>
+                            )}
                           </div>
                         </div>
                       );
@@ -470,37 +500,91 @@ export default function AdminCitas() {
                     required
                   />
 
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-sm font-medium text-gray-700">Resumen de puntos</label>
+                      <div className="text-xs text-gray-500">
+                        Disponibles: <span className="font-semibold">{formData.clienta_id ? getClientaById(formData.clienta_id)?.puntos ?? 0 : 0} pts</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Puntos a descontar (canjes):</span>
+                      <span className="font-bold text-red-600">-{getPuntosUtilizados(formData.items)} pts</span>
+                    </div>
+                    <div className="flex justify-between text-sm mt-1">
+                      <span className="text-gray-600">Puntos a ganar (compras):</span>
+                      <span className="font-bold text-primary">+{getPuntosGanados(formData.items)} pts</span>
+                    </div>
+                    <p className="mt-2 text-xs text-gray-500 italic">
+                      Los puntos se actualizarán en la cuenta de la clienta al completar la cita.
+                    </p>
+                  </div>
+
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <label className="block text-sm font-medium text-gray-700">Servicios</label>
-                      <div className="text-sm text-gray-600">
-                        Puntos: <span className="font-semibold text-primary">+{getPuntosGanados(formData.servicio_ids)}</span>
-                      </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div className="space-y-2">
                       {servicios.map((servicio) => {
-                        const checked = formData.servicio_ids.includes(servicio.id);
+                        const item = formData.items.find(it => it.servicio_id === servicio.id);
+                        const checked = !!item;
+                        
                         return (
-                          <label
+                          <div
                             key={servicio.id}
                             className={
-                              'flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-colors ' +
+                              'flex flex-col gap-2 rounded-lg border p-3 transition-colors ' +
                               (checked
                                 ? 'border-primary bg-primary/5'
                                 : 'border-gray-200 hover:bg-gray-50')
                             }
                           >
-                            <input
-                              type="checkbox"
-                              className="mt-1"
-                              checked={checked}
-                              onChange={() => toggleServicio(servicio.id)}
-                            />
-                            <div className="min-w-0">
-                              <div className="font-medium text-gray-900 truncate">{servicio.nombre}</div>
-                              <div className="text-xs text-gray-500">+{servicio.puntos_otorgados} puntos</div>
+                            <div className="flex items-center gap-3">
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={() => toggleServicio(servicio.id)}
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-gray-900 truncate">{servicio.nombre}</div>
+                                <div className="text-xs text-gray-500">
+                                  {servicio.puntos_otorgados} pts otorgados
+                                  {servicio.puntos_requeridos && ` | ${servicio.puntos_requeridos} pts para canje`}
+                                </div>
+                              </div>
                             </div>
-                          </label>
+                            
+                            {checked && (
+                              <div className="flex gap-2 ml-7 mt-1">
+                                <button
+                                  type="button"
+                                  onClick={() => setItemTipo(servicio.id, 'comprado')}
+                                  className={`px-3 py-1 text-xs rounded-full border transition-colors ${
+                                    item.tipo === 'comprado'
+                                      ? 'bg-primary text-white border-primary'
+                                      : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                                  }`}
+                                >
+                                  Comprado
+                                </button>
+                                {servicio.puntos_requeridos ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => setItemTipo(servicio.id, 'canjeado')}
+                                    className={`px-3 py-1 text-xs rounded-full border transition-colors ${
+                                      item.tipo === 'canjeado'
+                                        ? 'bg-accent text-white border-accent'
+                                        : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                                    }`}
+                                  >
+                                    Canjeado ({servicio.puntos_requeridos} pts)
+                                  </button>
+                                ) : (
+                                  <span className="text-[10px] text-gray-400 self-center">No canjeable</span>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         );
                       })}
                     </div>
