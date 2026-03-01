@@ -9,10 +9,12 @@ import Register from './pages/Register';
 import Servicios from './pages/Servicios';
 import MisCitas from './pages/MisCitas';
 import Referidos from './pages/Referidos';
+import Premios from './pages/Premios';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminClientas from './pages/admin/Clientas';
 import AdminCitas from './pages/admin/Citas';
 import AdminServicios from './pages/admin/Servicios';
+import AdminPremios from './pages/admin/Premios';
 
 function LayoutWithNav({ children }: { children: React.ReactNode }) {
   return (
@@ -69,6 +71,16 @@ function App() {
               </RequireAuth>
             }
           />
+          <Route
+            path="/premios"
+            element={
+              <RequireAuth>
+                <LayoutWithNav>
+                  <Premios />
+                </LayoutWithNav>
+              </RequireAuth>
+            }
+          />
           
           <Route
             path="/admin"
@@ -106,6 +118,16 @@ function App() {
               <RequireAdmin>
                 <LayoutWithNav>
                   <AdminServicios />
+                </LayoutWithNav>
+              </RequireAdmin>
+            }
+          />
+          <Route
+            path="/admin/premios"
+            element={
+              <RequireAdmin>
+                <LayoutWithNav>
+                  <AdminPremios />
                 </LayoutWithNav>
               </RequireAdmin>
             }

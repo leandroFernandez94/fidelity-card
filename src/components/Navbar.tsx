@@ -1,7 +1,7 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from './Button';
-import { Home, Calendar, Users, Gem, LogOut, User, Menu, X } from 'lucide-react';
+import { Home, Calendar, Users, Gem, LogOut, User, Menu, X, Gift } from 'lucide-react';
 import { useState } from 'react';
 
 export function Navbar() {
@@ -40,11 +40,13 @@ export function Navbar() {
                 <NavLink to="/admin/clientas" icon={<Users size={18} />} label="Clientas" />
                 <NavLink to="/admin/citas" icon={<Calendar size={18} />} label="Citas" />
                 <NavLink to="/admin/servicios" icon={<Gem size={18} />} label="Servicios" />
+                <NavLink to="/admin/premios" icon={<Gift size={18} />} label="Premios" />
               </>
             ) : (
               <>
                 <NavLink to="/citas" icon={<Calendar size={18} />} label="Mis Citas" />
                 <NavLink to="/servicios" icon={<Gem size={18} />} label="Servicios" />
+                <NavLink to="/premios" icon={<Gift size={18} />} label="Canjes" />
                 <NavLink to="/referidos" icon={<User size={18} />} label="Referidos" />
               </>
             )}
@@ -109,6 +111,12 @@ export function Navbar() {
                     label="Servicios"
                     onNavigate={() => setMobileMenuOpen(false)}
                   />
+                  <MobileNavLink
+                    to="/admin/premios"
+                    icon={<Gift size={18} />}
+                    label="Premios"
+                    onNavigate={() => setMobileMenuOpen(false)}
+                  />
                 </>
               ) : (
                 <>
@@ -122,6 +130,12 @@ export function Navbar() {
                     to="/servicios"
                     icon={<Gem size={18} />}
                     label="Servicios"
+                    onNavigate={() => setMobileMenuOpen(false)}
+                  />
+                  <MobileNavLink
+                    to="/premios"
+                    icon={<Gift size={18} />}
+                    label="Canjes"
                     onNavigate={() => setMobileMenuOpen(false)}
                   />
                   <MobileNavLink

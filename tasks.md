@@ -219,7 +219,7 @@ Validacion: `bun run build` OK.
 ---
 
 ## [20] Feature: Canjes Parte 1 (Premios ABM)
-**Estado:** pending
+**Estado:** done
 **Descripción:** Implementar un sistema de premios que los clientes puedan canjear por puntos.
 - Admin: CRUD completo de premios (nombre, descripción, costo en puntos).
 - Cliente: Visualización de premios disponibles y su costo.
@@ -227,6 +227,13 @@ Validacion: `bun run build` OK.
 - Nueva tabla `premios` en la base de datos.
 - Endpoints `/api/premios` (CRUD para admin, GET para clientes).
 - Vista de administración de premios y sección de premios para el cliente.
+**Comentarios:** Branch: feature-20-canjes-premios-abm
+Completado: se implemento el CRUD de premios en el backend y frontend, incluyendo seeds y tests unitarios.
+- Backend: endpoints `/api/premios` con Drizzle y validacion. Tests unitarios en `premios.handlers.test.ts`.
+- Frontend: service `premiosService`, pagina de administracion `AdminPremios` y vista de clientas `Premios` (Canjes).
+- Seeds: script `scripts/seed-premios.mjs` y actualizacion de `seed:all`.
+- Navegacion: agregados links a Premios/Canjes en la Navbar para ambos roles.
+- Validacion: `bun run build` OK, `npm test` (en api) OK.
 
 ---
 
