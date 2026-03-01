@@ -29,10 +29,15 @@ export function registerCitasRoutes(app: AnyElysia) {
       {
         body: t.Object({
           clienta_id: t.Optional(t.String({ format: 'uuid' })),
-          servicio_ids: t.Array(t.String({ format: 'uuid' })),
+          items: t.Array(
+            t.Object({
+              servicio_id: t.String({ format: 'uuid' }),
+              tipo: t.Union([t.Literal('comprado'), t.Literal('canjeado')]),
+            })
+          ),
           fecha_hora: t.String({ format: 'date-time' }),
-          puntos_ganados: t.Integer({ minimum: 0 }),
-          puntos_utilizados: t.Integer({ minimum: 0 }),
+          puntos_ganados: t.Optional(t.Integer({ minimum: 0 })),
+          puntos_utilizados: t.Optional(t.Integer({ minimum: 0 })),
           notas: t.Optional(t.String()),
         }),
       }

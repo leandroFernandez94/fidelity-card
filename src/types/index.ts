@@ -14,7 +14,7 @@ export interface Profile {
 export interface Servicio {
   id: string;
   nombre: string;
-  descripcion: string;
+  descripcion: string | null;
   precio: number;
   duracion_min: number;
   puntos_otorgados: number;

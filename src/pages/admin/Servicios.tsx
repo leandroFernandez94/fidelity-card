@@ -100,12 +100,14 @@ export default function AdminServicios() {
 
     try {
       const servicioData = {
-        nombre: formData.nombre,
-        descripcion: formData.descripcion,
-        precio: parseFloat(formData.precio),
-        duracion_min: parseInt(formData.duracion_min),
-        puntos_otorgados: parseInt(formData.puntos_otorgados),
-        puntos_requeridos: formData.puntos_requeridos.trim() ? parseInt(formData.puntos_requeridos) : null
+        nombre: formData.nombre.trim(),
+        descripcion: formData.descripcion.trim() || null,
+        precio: Math.max(0, Math.round(Number(formData.precio))),
+        duracion_min: Math.max(1, Math.round(Number(formData.duracion_min))),
+        puntos_otorgados: Math.max(0, Math.round(Number(formData.puntos_otorgados))),
+        puntos_requeridos: formData.puntos_requeridos && formData.puntos_requeridos.trim() 
+          ? Math.max(0, Math.round(Number(formData.puntos_requeridos))) 
+          : null
       };
 
       if (editingServicio) {
@@ -118,9 +120,10 @@ export default function AdminServicios() {
       setServicios(data);
       setFilteredServicios(data);
       closeModal();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al guardar servicio:', error);
-      setModalError('No se pudo guardar el servicio. Intenta nuevamente.');
+      const message = error.message || 'No se pudo guardar el servicio.';
+      setModalError(`Error: ${message}`);
     } finally {
       setSubmitting(false);
     }
@@ -268,15 +271,25 @@ export default function AdminServicios() {
         {modalOpen && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <Card className="w-full max-w-lg">
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle>
-                  {editingServicio ? 'Editar Servicio' : 'Nuevo Servicio'}
+                  <span id="modal-title">
+                    {editingServicio ? 'Editar Servicio' : 'Nuevo Servicio'}
+                  </span>
                 </CardTitle>
+                <button 
+                  type="button"
+                  onClick={closeModal} 
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  aria-label="Cerrar"
+                >
+                  ✕
+                </button>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {modalError && (
-                    <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    <div id="modal-error" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                       {modalError}
                     </div>
                   )}

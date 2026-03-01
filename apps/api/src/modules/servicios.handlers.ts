@@ -10,11 +10,11 @@ import type { AuthJwtPayload } from './auth-context';
 
 export type ServicioCreateBody = {
   nombre: string;
-  descripcion: string;
+  descripcion?: string | null;
   precio: number;
   duracion_min: number;
   puntos_otorgados: number;
-  puntos_requeridos?: number;
+  puntos_requeridos?: number | null;
 };
 
 export type ServicioPatchBody = Partial<ServicioCreateBody>;
@@ -68,7 +68,7 @@ export function createServiciosHttpHandlers(deps: ServiciosDeps) {
         .insert(servicios)
         .values({
           nombre: body.nombre.trim(),
-          descripcion: body.descripcion.trim(),
+          descripcion: (body.descripcion || '').trim(),
           precio: body.precio,
           duracion_min: body.duracion_min,
           puntos_otorgados: body.puntos_otorgados,
