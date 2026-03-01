@@ -289,12 +289,28 @@ Completado: implementado soporte para canje de puntos al crear citas.
 - Consistencia en botones, fondos y acentos.
 **Comentarios:** Branch: feature-24-rebranding-calixta-lab. Completado: actualizado nombre a Calixta Lab, ajustada paleta de colores (Azul #223FA0, Negro, Blanco) e integrados los nuevos logos en Navbar, Login y Register.
 
-## [25] Admin UI: mostrar precios y total en modal de citas
-**Estado:** done
-**Descripción:** En el modal de creación de cita de admin:
-a. Mostrar el precio monetario de los servicios en las cards de cada servicio.
-b. Mostrar el total a pagar en el resumen de la cita sumando los servicios seleccionados como 'Compra' (excluyendo canjes).
+## [26] Pagina de Cita parte 1: Detalle de Cita (/cita/:id)
+**Estado:** todo
+**Descripción:** Crear una nueva página de detalle para una cita específica que se active al hacer clic en una cita de la lista. Esta página debe mostrar:
+- Todos los detalles de la cita (fecha, hora, estado, notas).
+- Lista de servicios contratados con sus precios individuales.
+- Detalle de puntos: puntos ganados en la cita y puntos canjeados/utilizados.
+- Desglose de precios: subtotal, descuentos por puntos y total final pagado.
+- URL: `/cita/:id`
 **Criterios de aceptacion:**
-- Cada servicio en la lista muestra su precio.
-- El resumen de la cita tiene una línea 'Total a pagar' que se actualiza dinámicamente según la selección de compras.
-**Comentarios:** Completado en este mismo prompt. Se actualizó `Citas.tsx`.
+- La página carga los datos de la cita por ID desde la API.
+- Muestra el desglose completo de servicios y puntos de forma clara.
+- Es accesible tanto para clientas como para el admin (con los permisos adecuados).
+
+---
+
+## [27] Pagina de Cita parte 2: Nueva Cita (/cita/new) y Deprecar Modals
+**Estado:** todo
+**Descripción:** Reutilizar los componentes de la página de detalle de cita para permitir la creación de una nueva cita en una página dedicada.
+- Implementar la lógica de creación de cita en la ruta `/cita/new`.
+- Deprecar y eliminar los modales actuales de creación y edición de citas en el panel de Admin y en la vista de Clientas.
+- Asegurar una transición fluida entre la lista y la nueva página de creación.
+**Criterios de aceptacion:**
+- `/cita/new` permite crear una cita con la misma funcionalidad que el modal anterior.
+- Los modales de creación/edición de citas han sido eliminados del código.
+- La navegación hacia la creación de cita redirige correctamente a la nueva página.
