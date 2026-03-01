@@ -208,11 +208,53 @@ Validacion: `bun run build` OK.
 
 ---
 
-## [14] Docs: guia MVP para levantar FE+API+DB
-**Estado:** done
-**Descripción:** (Refactor Supabase -> BE propio) Crear/actualizar doc (ej. `DEV.md`) con pasos para levantar Postgres (docker), correr migraciones (drizzle), correr API (bun/elysia) y correr FE (vite + proxy /api). Incluir variables de entorno de ejemplo.
-**Entregables:** doc con comandos copy/paste + variables minimas.
-**Criterios de aceptacion:** un dev nuevo puede levantar todo en <10 minutos siguiendo la guia.
-**Comentarios:** Completado: agregue `DEV.md` con pasos para levantar Postgres (docker), correr migraciones (drizzle), levantar API y frontend con proxy `/api`. Validacion: `bun run build` OK, tests API (`cd apps/api && npm test`) OK. Nota: `bun run lint` falla por issues preexistentes en el repo (incluye `.agents/skills/*`, `investigate.cjs`, y lint rules en algunos modulos).
+## [19] Bug: Editar clienta no funciona
+**Estado:** pending
+**Descripción:** Al presionar el botón de editar en la lista de clientas (Admin), la aplicación no realiza ninguna acción. Identificar si es un problema de eventos, rutas o del modal.
+**Criterios de aceptacion:**
+- Al hacer clic en editar, se abre el formulario/modal con los datos de la clienta.
+- Se pueden guardar cambios y estos se reflejan en la base de datos y la UI.
 
 ---
+
+## [20] Feature: Canjes Parte 1 (Premios ABM)
+**Estado:** pending
+**Descripción:** Implementar un sistema de premios que los clientes puedan canjear por puntos.
+- Admin: CRUD completo de premios (nombre, descripción, costo en puntos).
+- Cliente: Visualización de premios disponibles y su costo.
+**Criterios de aceptacion:**
+- Nueva tabla `premios` en la base de datos.
+- Endpoints `/api/premios` (CRUD para admin, GET para clientes).
+- Vista de administración de premios y sección de premios para el cliente.
+
+---
+
+## [21] Feature: Canjes Parte 2 (Descuentos en Servicios)
+**Estado:** pending
+**Descripción:** Permitir el uso de puntos para pagar o descontar el precio de los servicios al crear una cita.
+- Cada servicio puede tener un precio en puntos.
+- Al agendar, el cliente puede elegir aplicar puntos para reducir el costo monetario.
+**Criterios de aceptacion:**
+- Los puntos se descuentan del perfil del usuario al confirmar la cita.
+- El precio de la cita se ajusta según la estrategia de puntos definida.
+
+---
+
+## [22] Feature: Precios en Euros (€)
+**Estado:** pending
+**Descripción:** Cambiar la moneda de toda la aplicación de pesos/dólares a Euros.
+**Criterios de aceptacion:**
+- Todos los precios en el frontend y el panel de admin muestran el símbolo `€`.
+- Formateo de moneda consistente con estándares europeos.
+
+---
+
+## [23] Refactor: Internacionalización Técnica (Inglés)
+**Estado:** pending
+**Descripción:** Refactorizar el código, la documentación y el esquema de la base de datos al inglés. El contenido visible para el usuario (UI) permanecerá en español.
+- Base de datos: `citas` -> `appointments`, `servicios` -> `services`, etc.
+- Código: Variables, funciones y comentarios en inglés.
+- Documentación: Todos los archivos `.md` (excepto contenido de sitio) en inglés.
+**Criterios de aceptacion:**
+- La aplicación funciona correctamente tras el renombrado masivo.
+- El código sigue una convención de nomenclatura 100% en inglés.
