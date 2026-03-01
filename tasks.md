@@ -238,13 +238,20 @@ Completado: se implemento el CRUD de premios en el backend y frontend, incluyend
 ---
 
 ## [21] Feature: Canjes Parte 2 (Descuentos en Servicios)
-**Estado:** pending
+**Estado:** done
 **Descripción:** Permitir el uso de puntos para pagar o descontar el precio de los servicios al crear una cita.
 - Cada servicio puede tener un precio en puntos.
 - Al agendar, el cliente puede elegir aplicar puntos para reducir el costo monetario.
 **Criterios de aceptacion:**
 - Los puntos se descuentan del perfil del usuario al confirmar la cita.
 - El precio de la cita se ajusta según la estrategia de puntos definida.
+**Comentarios:** Branch: feature-21-descuentos-puntos-servicios
+Completado: implementado soporte para canje de puntos al crear citas.
+- DB: Agregada columna `puntos_utilizados` a la tabla `citas`.
+- Backend: Actualizados handlers y lógica atómica para descontar puntos del perfil al completar la cita.
+- Frontend: Actualizado modal de creación de citas en Admin para permitir ingresar puntos a canjear (validando contra el saldo de la clienta).
+- UI: Visualización de puntos canjeados en la lista de citas (Admin y Clienta).
+- Tests: Agregado test unitario para verificar el descuento de puntos en la transacción atómica.
 
 ---
 

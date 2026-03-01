@@ -6,3 +6,4 @@ export * from './citas';
 export * from './referidos';
 export * from './premios';
 export * from './recordatorios';
+export * from './cita_servicios';

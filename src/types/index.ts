@@ -14,10 +14,11 @@ export interface Profile {
 export interface Servicio {
   id: string;
   nombre: string;
-  descripcion: string;
+  descripcion: string | null;
   precio: number;
   duracion_min: number;
   puntos_otorgados: number;
+  puntos_requeridos: number | null;
   created_at: string;
 }
 
@@ -28,6 +29,7 @@ export interface Cita {
   servicios?: Servicio[];
   fecha_hora: string;
   puntos_ganados: number;
+  puntos_utilizados: number;
   estado: 'pendiente' | 'confirmada' | 'completada' | 'cancelada';
   notas?: string;
   created_at: string;

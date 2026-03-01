@@ -27,14 +27,17 @@ export default function AdminCitas() {
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
-  const [formData, setFormData] = useState<{ clienta_id: string; fecha_hora: string; servicio_ids: string[]; notas: string }>(
-    {
-      clienta_id: '',
-      fecha_hora: '',
-      servicio_ids: [],
-      notas: ''
-    }
-  );
+  const [formData, setFormData] = useState<{
+    clienta_id: string;
+    fecha_hora: string;
+    items: { servicio_id: string; tipo: 'comprado' | 'canjeado' }[];
+    notas: string;
+  }>({
+    clienta_id: '',
+    fecha_hora: '',
+    items: [],
+    notas: ''
+  });
 
   useEffect(() => {
     async function loadData() {
@@ -104,7 +107,7 @@ export default function AdminCitas() {
     setFormData({
       clienta_id: '',
       fecha_hora: toDateTimeLocalValue(base),
-      servicio_ids: [],
+      items: [],
       notas: ''
     });
     setModalOpen(true);
@@ -118,20 +121,36 @@ export default function AdminCitas() {
 
   function toggleServicio(servicioId: string) {
     setFormData((prev) => {
-      const exists = prev.servicio_ids.includes(servicioId);
+      const exists = prev.items.find((it) => it.servicio_id === servicioId);
       return {
         ...prev,
-        servicio_ids: exists
-          ? prev.servicio_ids.filter((id) => id !== servicioId)
-          : [...prev.servicio_ids, servicioId]
+        items: exists
+          ? prev.items.filter((it) => it.servicio_id !== servicioId)
+          : [...prev.items, { servicio_id: servicioId, tipo: 'comprado' }]
       };
     });
   }
 
-  function getPuntosGanados(servicioIds: string[]) {
-    return servicioIds.reduce((acc, id) => {
-      const servicio = servicios.find((s) => s.id === id);
+  function setItemTipo(servicioId: string, tipo: 'comprado' | 'canjeado') {
+    setFormData((prev) => ({
+      ...prev,
+      items: prev.items.map((it) => (it.servicio_id === servicioId ? { ...it, tipo } : it))
+    }));
+  }
+
+  function getPuntosGanados(items: { servicio_id: string; tipo: 'comprado' | 'canjeado' }[]) {
+    return items.reduce((acc, it) => {
+      if (it.tipo !== 'comprado') return acc;
+      const servicio = servicios.find((s) => s.id === it.servicio_id);
       return acc + (servicio?.puntos_otorgados ?? 0);
+    }, 0);
+  }
+
+  function getPuntosUtilizados(items: { servicio_id: string; tipo: 'comprado' | 'canjeado' }[]) {
+    return items.reduce((acc, it) => {
+      if (it.tipo !== 'canjeado') return acc;
+      const servicio = servicios.find((s) => s.id === it.servicio_id);
+      return acc + (servicio?.puntos_requeridos ?? 0);
     }, 0);
   }
 
@@ -147,7 +166,7 @@ export default function AdminCitas() {
         setModalError('Selecciona una clienta.');
         return;
       }
-      if (formData.servicio_ids.length === 0) {
+      if (formData.items.length === 0) {
         setModalError('Selecciona al menos un servicio.');
         return;
       }
@@ -156,14 +175,22 @@ export default function AdminCitas() {
         return;
       }
 
-      const puntos_ganados = getPuntosGanados(formData.servicio_ids);
-      await citasService.create({
+      const clienta = getClientaById(formData.clienta_id);
+      const puntos_utilizados = getPuntosUtilizados(formData.items);
+
+      if (puntos_utilizados > (clienta?.puntos ?? 0)) {
+        setModalError('La clienta no tiene suficientes puntos para este canje.');
+        return;
+      }
+
+      const payload = {
         clienta_id: formData.clienta_id,
-        servicio_ids: formData.servicio_ids,
+        items: formData.items,
         fecha_hora: new Date(formData.fecha_hora).toISOString(),
-        puntos_ganados,
         notas: formData.notas.trim() ? formData.notas.trim() : undefined
-      });
+      };
+
+      await citasService.create(payload);
 
       const citasData = await citasService.getAll();
       setCitas(citasData);
@@ -333,9 +360,22 @@ export default function AdminCitas() {
                               </span>
                             </div>
 
-                            <div className="text-sm text-gray-500 mt-2">
-                              {cita.servicio_ids.length} servicio{cita.servicio_ids.length > 1 ? 's' : ''}
-                            </div>
+                              <div className="text-sm text-gray-500 mt-2">
+                                <span data-testid="cita-servicios-count">
+                                  {cita.servicio_ids.length} servicio{cita.servicio_ids.length !== 1 ? 's' : ''}
+                                </span>
+                                {cita.puntos_utilizados > 0 && (
+                                  <span className="ml-2 px-2 py-0.5 bg-red-50 text-red-600 rounded-full text-xs font-bold">
+                                    -{cita.puntos_utilizados} pts canjeados
+                                  </span>
+                                )}
+                                {cita.puntos_ganados > 0 && (
+                                  <span className="ml-2 px-2 py-0.5 bg-primary/10 text-primary rounded-full text-xs font-bold">
+                                    +{cita.puntos_ganados} pts otorgados
+                                  </span>
+                                )}
+                              </div>
+
 
                             {cita.notas && (
                               <p className="mt-3 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
@@ -344,11 +384,11 @@ export default function AdminCitas() {
                             )}
                           </div>
 
-                          <div className="flex flex-col gap-2">
+                          <div className="flex flex-col gap-2 shrink-0">
                             {cita.estado === 'pendiente' && (
                               <div className="flex items-center gap-2 text-xs text-gray-600">
                                 <AlertCircle size={14} className="text-yellow-600" />
-                                Esperando confirmación de la clienta
+                                Esperando confirmación
                               </div>
                             )}
 
@@ -356,6 +396,7 @@ export default function AdminCitas() {
                               <Button
                                 size="sm"
                                 variant="secondary"
+                                data-testid={`btn-completar-${cita.id}`}
                                 onClick={() => actualizarEstado(cita.id, 'completada')}
                                 disabled={updatingId === cita.id}
                               >
@@ -368,6 +409,7 @@ export default function AdminCitas() {
                               <Button
                                 size="sm"
                                 variant="danger"
+                                data-testid={`btn-cancelar-${cita.id}`}
                                 onClick={() => actualizarEstado(cita.id, 'cancelada')}
                                 disabled={updatingId === cita.id}
                               >
@@ -417,6 +459,11 @@ export default function AdminCitas() {
                             <span className="font-bold text-primary">
                               +{cita.puntos_ganados} pts
                             </span>
+                            {cita.puntos_utilizados > 0 && (
+                              <span className="font-bold text-red-500">
+                                -{cita.puntos_utilizados} pts
+                              </span>
+                            )}
                           </div>
                         </div>
                       );
@@ -430,9 +477,9 @@ export default function AdminCitas() {
 
         {modalOpen && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <Card className="w-full max-w-2xl">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
+            <Card className="w-full max-w-2xl max-h-[90vh] flex flex-col">
+              <CardContent className="p-0 flex flex-col h-full overflow-hidden">
+                <div className="p-6 border-b border-gray-100 flex items-center justify-between shrink-0">
                   <div>
                     <h2 className="text-xl font-semibold text-gray-900">Nueva Cita</h2>
                     <p className="text-sm text-gray-500">Crea una cita para una clienta</p>
@@ -442,86 +489,155 @@ export default function AdminCitas() {
                   </Button>
                 </div>
 
-                <form onSubmit={handleCreateCita} className="space-y-4">
-                  {modalError && (
-                    <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                      {modalError}
-                    </div>
-                  )}
-
-                  <Select
-                    id="clienta_id"
-                    label="Clienta"
-                    options={clientas.map((c) => ({
-                      value: c.id,
-                      label: `${c.nombre} ${c.apellido}`
-                    }))}
-                    value={formData.clienta_id}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, clienta_id: e.target.value }))}
-                    required
-                  />
-
-                  <Input
-                    id="fecha_hora"
-                    type="datetime-local"
-                    label="Fecha y Hora"
-                    value={formData.fecha_hora}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, fecha_hora: e.target.value }))}
-                    required
-                  />
-
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="block text-sm font-medium text-gray-700">Servicios</label>
-                      <div className="text-sm text-gray-600">
-                        Puntos: <span className="font-semibold text-primary">+{getPuntosGanados(formData.servicio_ids)}</span>
+                <form onSubmit={handleCreateCita} className="flex flex-col h-full overflow-hidden">
+                  <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                    {modalError && (
+                      <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                        {modalError}
                       </div>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {servicios.map((servicio) => {
-                        const checked = formData.servicio_ids.includes(servicio.id);
-                        return (
-                          <label
-                            key={servicio.id}
-                            className={
-                              'flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-colors ' +
-                              (checked
-                                ? 'border-primary bg-primary/5'
-                                : 'border-gray-200 hover:bg-gray-50')
-                            }
-                          >
-                            <input
-                              type="checkbox"
-                              className="mt-1"
-                              checked={checked}
-                              onChange={() => toggleServicio(servicio.id)}
-                            />
-                            <div className="min-w-0">
-                              <div className="font-medium text-gray-900 truncate">{servicio.nombre}</div>
-                              <div className="text-xs text-gray-500">+{servicio.puntos_otorgados} puntos</div>
-                            </div>
-                          </label>
-                        );
-                      })}
-                    </div>
-                    {servicios.length === 0 && (
-                      <div className="text-sm text-gray-500">No hay servicios cargados.</div>
                     )}
-                  </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Notas (opcional)</label>
-                    <textarea
-                      id="notas"
-                      rows={3}
-                      value={formData.notas}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, notas: e.target.value }))}
-                      placeholder="Ej: traer diseño de referencia..."
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    <Select
+                      id="clienta_id"
+                      label="Clienta"
+                      options={clientas.map((c) => ({
+                        value: c.id,
+                        label: `${c.nombre} ${c.apellido}`
+                      }))}
+                      value={formData.clienta_id}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, clienta_id: e.target.value }))}
+                      required
                     />
+
+                    <Input
+                      id="fecha_hora"
+                      type="datetime-local"
+                      label="Fecha y Hora"
+                      value={formData.fecha_hora}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, fecha_hora: e.target.value }))}
+                      required
+                    />
+
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-sm font-medium text-gray-700">Resumen de puntos</label>
+                        <div className="text-xs text-gray-500">
+                          Disponibles: <span className="font-semibold">{formData.clienta_id ? getClientaById(formData.clienta_id)?.puntos ?? 0 : 0} pts</span>
+                        </div>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Puntos a descontar (canjes):</span>
+                        <span data-testid="puntos-descontar" className="font-bold text-red-600">-{getPuntosUtilizados(formData.items)} pts</span>
+                      </div>
+                      <div className="flex justify-between text-sm mt-1">
+                        <span className="text-gray-600">Puntos a ganar (compras):</span>
+                        <span data-testid="puntos-ganar" className="font-bold text-primary">+{getPuntosGanados(formData.items)} pts</span>
+                      </div>
+                      <p className="mt-2 text-xs text-gray-500 italic">
+                        Los puntos se actualizarán en la cuenta de la clienta al completar la cita.
+                      </p>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-sm font-medium text-gray-700">Servicios</label>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" id="servicios-list-container" data-testid="servicios-list">
+                        {servicios.map((servicio) => {
+                          const item = formData.items.find(it => it.servicio_id === servicio.id);
+                          const checked = !!item;
+                          
+                          return (
+                            <div
+                              key={servicio.id}
+                              data-testid={`servicio-item-${servicio.nombre}`}
+                              className={
+                                'flex flex-col gap-2 rounded-lg border p-3 transition-colors ' +
+                                (checked
+                                  ? 'border-primary bg-primary/5'
+                                  : 'border-gray-200 hover:bg-gray-50')
+                              }
+                            >
+                              <div className="flex items-center gap-3">
+                                <input
+                                  id={`check-${servicio.id}`}
+                                  data-testid={`check-${servicio.nombre}`}
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={() => toggleServicio(servicio.id)}
+                                  className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                                />
+                                <label
+                                  htmlFor={`check-${servicio.id}`}
+                                  className="flex-1 min-w-0 cursor-pointer"
+                                >
+                                  <div className="font-medium text-gray-900 truncate" data-testid="servicio-nombre">
+                                    {servicio.nombre}
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    {servicio.puntos_otorgados} pts otorgados
+                                    {servicio.puntos_requeridos && ` | ${servicio.puntos_requeridos} pts`}
+                                  </div>
+                                </label>
+                              </div>
+
+                              {checked && (
+                                <div className="flex gap-2 ml-7 mt-1">
+                                  <button
+                                    type="button"
+                                    data-testid="btn-comprado"
+                                    onClick={() => setItemTipo(servicio.id, 'comprado')}
+                                    className={`px-3 py-1 text-xs rounded-full border transition-colors ${
+                                      item.tipo === 'comprado'
+                                        ? 'bg-primary text-white border-primary'
+                                        : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                                    }`}
+                                  >
+                                    Compra
+                                  </button>
+                                  {servicio.puntos_requeridos ? (
+                                    <button
+                                      type="button"
+                                      data-testid="btn-canjeado"
+                                      onClick={() => setItemTipo(servicio.id, 'canjeado')}
+                                      disabled={!formData.clienta_id || (getClientaById(formData.clienta_id)?.puntos ?? 0) < (servicio.puntos_requeridos ?? 0)}
+                                      className={`px-3 py-1 text-xs rounded-full border transition-colors ${
+                                        item.tipo === 'canjeado'
+                                          ? 'bg-accent text-white border-accent'
+                                          : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed'
+                                      }`}
+                                      title={!formData.clienta_id ? 'Selecciona una clienta primero' : (getClientaById(formData.clienta_id)?.puntos ?? 0) < (servicio.puntos_requeridos ?? 0) ? 'Puntos insuficientes' : ''}
+                                    >
+                                      Canje
+                                    </button>
+                                  ) : (
+                                    <span data-testid="no-canjeable" className="text-[10px] text-gray-400 self-center">No canjeable</span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {servicios.length === 0 && (
+                        <div className="text-sm text-gray-500">No hay servicios cargados.</div>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Notas (opcional)</label>
+                      <textarea
+                        id="notas"
+                        rows={3}
+                        value={formData.notas}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, notas: e.target.value }))}
+                        placeholder="Ej: traer diseño de referencia..."
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      />
+                    </div>
                   </div>
 
-                  <div className="flex justify-end gap-3 pt-2">
+                  <div className="p-6 border-t border-gray-100 flex justify-end gap-3 shrink-0">
                     <Button type="button" variant="outline" onClick={closeModal} disabled={submitting}>
                       Cancelar
                     </Button>

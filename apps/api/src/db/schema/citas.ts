@@ -11,6 +11,7 @@ export const citas = pgTable('citas', {
   servicio_ids: uuid('servicio_ids').array().notNull(),
   fecha_hora: timestamp('fecha_hora', { withTimezone: true }).notNull(),
   puntos_ganados: integer('puntos_ganados').notNull().default(0),
+  puntos_utilizados: integer('puntos_utilizados').notNull().default(0),
   estado: citaEstadoEnum('estado').notNull().default('pendiente'),
   notas: text('notas'),
   created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),

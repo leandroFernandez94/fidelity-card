@@ -1,0 +1,1 @@
+ALTER TABLE "citas" ADD COLUMN "puntos_utilizados" integer DEFAULT 0 NOT NULL;

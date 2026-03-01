@@ -270,7 +270,13 @@ export default function MisCitas() {
                           <div className="text-2xl font-bold text-primary">
                             +{cita.puntos_ganados}
                           </div>
-                          <div className="text-xs text-gray-500">puntos</div>
+                          <div className="text-xs text-gray-500">puntos ganados</div>
+                          {cita.puntos_utilizados > 0 && (
+                            <div className="mt-2 text-xl font-bold text-red-500">
+                              -{cita.puntos_utilizados}
+                              <div className="text-[10px] text-gray-500 uppercase tracking-tight font-normal">canjeados</div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </CardContent>

@@ -17,10 +17,11 @@ export function registerServiciosRoutes(app: AnyElysia) {
       {
         body: t.Object({
           nombre: t.String({ minLength: 1 }),
-          descripcion: t.String(),
+          descripcion: t.Nullable(t.String()),
           precio: t.Integer({ minimum: 0 }),
           duracion_min: t.Integer({ minimum: 1 }),
-          puntos_otorgados: t.Integer({ minimum: 0 }),
+          puntos_otorgados: t.Optional(t.Integer({ minimum: 0 })),
+          puntos_requeridos: t.Optional(t.Nullable(t.Integer({ minimum: 0 }))),
         }),
       }
     )
@@ -34,10 +35,11 @@ export function registerServiciosRoutes(app: AnyElysia) {
         body: t.Object(
           {
             nombre: t.Optional(t.String({ minLength: 1 })),
-            descripcion: t.Optional(t.String()),
+            descripcion: t.Optional(t.Nullable(t.String())),
             precio: t.Optional(t.Integer({ minimum: 0 })),
             duracion_min: t.Optional(t.Integer({ minimum: 1 })),
             puntos_otorgados: t.Optional(t.Integer({ minimum: 0 })),
+            puntos_requeridos: t.Optional(t.Nullable(t.Integer({ minimum: 0 }))),
           },
           { minProperties: 1 }
         ),

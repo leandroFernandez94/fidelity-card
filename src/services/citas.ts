@@ -1,11 +1,15 @@
 import { del, get, patch, post } from './api';
 import type { Cita } from '../types';
 
+type CitaItemInput = {
+  servicio_id: string;
+  tipo: 'comprado' | 'canjeado';
+};
+
 type CitaCreateInput = {
   clienta_id?: string;
-  servicio_ids: string[];
+  items: CitaItemInput[];
   fecha_hora: string;
-  puntos_ganados: number;
   notas?: string;
 };
 
