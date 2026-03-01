@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/Card';
-import { UserPlus } from 'lucide-react';
+import logoBlue from '../assets/logo-blue-bg.png';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -59,13 +59,11 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center">
-              <UserPlus className="w-8 h-8 text-white" />
-            </div>
+            <img src={logoBlue} alt="Calixta Lab" className="w-20 h-20 object-contain" />
           </div>
           <CardTitle className="text-2xl">Crear Cuenta</CardTitle>
         </CardHeader>
