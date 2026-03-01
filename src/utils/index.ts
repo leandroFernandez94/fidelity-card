@@ -23,9 +23,9 @@ export function formatearHora(fecha: string | Date): string {
 }
 
 export function formatearPrecio(precio: number): string {
-  return new Intl.NumberFormat('es-AR', {
+  return new Intl.NumberFormat('es-ES', {
     style: 'currency',
-    currency: 'ARS'
+    currency: 'EUR'
   }).format(precio);
 }
 
