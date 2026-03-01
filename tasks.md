@@ -256,11 +256,12 @@ Completado: implementado soporte para canje de puntos al crear citas.
 ---
 
 ## [22] Feature: Precios en Euros (€)
-**Estado:** pending
+**Estado:** done
 **Descripción:** Cambiar la moneda de toda la aplicación de pesos/dólares a Euros.
 **Criterios de aceptacion:**
 - Todos los precios en el frontend y el panel de admin muestran el símbolo `€`.
 - Formateo de moneda consistente con estándares europeos.
+**Comentarios:** Branch: `feature-22-precios-euros`. Completado: se actualizó `formatearPrecio` en `src/utils/index.ts` para usar `es-ES` y `EUR`.
 
 ---
 
