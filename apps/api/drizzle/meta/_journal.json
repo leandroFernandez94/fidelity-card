@@ -15,6 +15,13 @@
       "when": 1772273336723,
       "tag": "0001_known_iron_lad",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772357772842,
+      "tag": "0002_soft_sharon_carter",
+      "breakpoints": true
     }
   ]
 }
