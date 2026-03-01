@@ -14,6 +14,13 @@ export default function AdminClientas() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClienta, setSelectedClienta] = useState<Profile | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    nombre: '',
+    apellido: '',
+    telefono: '',
+    puntos: 0
+  });
 
   useEffect(() => {
     async function loadClientas() {
@@ -43,11 +50,48 @@ export default function AdminClientas() {
 
   function verDetalles(clienta: Profile) {
     setSelectedClienta(clienta);
+    setIsEditing(false);
+    setFormData({
+      nombre: clienta.nombre,
+      apellido: clienta.apellido,
+      telefono: clienta.telefono || '',
+      puntos: clienta.puntos || 0
+    });
     setModalOpen(true);
+  }
+
+  function toggleEdit() {
+    setIsEditing(!isEditing);
+  }
+
+  function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'puntos' ? parseInt(value) || 0 : value
+    }));
+  }
+
+  async function handleSave() {
+    if (!selectedClienta) return;
+    
+    try {
+      setLoading(true);
+      const updated = await profilesService.update(selectedClienta.id, formData);
+      setClientas(prev => prev.map(c => c.id === updated.id ? updated : c));
+      setSelectedClienta(updated);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error al actualizar clienta:', error);
+      alert('Error al actualizar la información de la clienta');
+    } finally {
+      setLoading(false);
+    }
   }
 
   function cerrarModal() {
     setSelectedClienta(null);
+    setIsEditing(false);
     setModalOpen(false);
   }
 
@@ -165,7 +209,7 @@ export default function AdminClientas() {
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
               <CardHeader className="flex items-center justify-between">
-                <CardTitle>Detalle de Clienta</CardTitle>
+                <CardTitle>{isEditing ? 'Editar Clienta' : 'Detalle de Clienta'}</CardTitle>
                 <Button
                   variant="outline"
                   size="sm"
@@ -184,11 +228,29 @@ export default function AdminClientas() {
                     <div className="space-y-3">
                       <div>
                         <label className="text-sm text-gray-600">Nombre</label>
-                        <p className="font-medium">{selectedClienta.nombre}</p>
+                        {isEditing ? (
+                          <Input
+                            name="nombre"
+                            value={formData.nombre}
+                            onChange={handleInputChange}
+                            className="mt-1"
+                          />
+                        ) : (
+                          <p className="font-medium">{selectedClienta.nombre}</p>
+                        )}
                       </div>
                       <div>
                         <label className="text-sm text-gray-600">Apellido</label>
-                        <p className="font-medium">{selectedClienta.apellido}</p>
+                        {isEditing ? (
+                          <Input
+                            name="apellido"
+                            value={formData.apellido}
+                            onChange={handleInputChange}
+                            className="mt-1"
+                          />
+                        ) : (
+                          <p className="font-medium">{selectedClienta.apellido}</p>
+                        )}
                       </div>
                       <div>
                         <label className="text-sm text-gray-600">Email</label>
@@ -196,7 +258,16 @@ export default function AdminClientas() {
                       </div>
                       <div>
                         <label className="text-sm text-gray-600">Teléfono</label>
-                        <p className="font-medium">{selectedClienta.telefono}</p>
+                        {isEditing ? (
+                          <Input
+                            name="telefono"
+                            value={formData.telefono}
+                            onChange={handleInputChange}
+                            className="mt-1"
+                          />
+                        ) : (
+                          <p className="font-medium">{selectedClienta.telefono}</p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -208,8 +279,23 @@ export default function AdminClientas() {
                     </h3>
                     <div className="bg-gradient-to-br from-pink-50 to-purple-50 p-6 rounded-lg mb-4">
                       <div className="text-center">
-                        <div className="text-5xl font-bold text-primary mb-2">{selectedClienta.puntos}</div>
-                        <div className="text-gray-600">Puntos Acumulados</div>
+                        {isEditing ? (
+                          <div className="space-y-2">
+                            <Input
+                              type="number"
+                              name="puntos"
+                              value={formData.puntos}
+                              onChange={handleInputChange}
+                              className="text-center text-2xl font-bold text-primary"
+                            />
+                            <div className="text-gray-600">Puntos Acumulados</div>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="text-5xl font-bold text-primary mb-2">{selectedClienta.puntos}</div>
+                            <div className="text-gray-600">Puntos Acumulados</div>
+                          </>
+                        )}
                       </div>
                     </div>
 
@@ -222,14 +308,20 @@ export default function AdminClientas() {
                   </div>
                 </div>
 
-                <div className="mt-6 flex justify-end gap-3">
-                  <Button variant="outline" onClick={cerrarModal}>
-                    Cerrar
+                <div className="mt-6 flex justify-end gap-3 border-t pt-6">
+                  <Button variant="outline" onClick={isEditing ? toggleEdit : cerrarModal}>
+                    {isEditing ? 'Cancelar' : 'Cerrar'}
                   </Button>
-                  <Button>
-                    <Edit size={18} className="mr-2" />
-                    Editar Clienta
-                  </Button>
+                  {isEditing ? (
+                    <Button onClick={handleSave}>
+                      Guardar Cambios
+                    </Button>
+                  ) : (
+                    <Button onClick={toggleEdit}>
+                      <Edit size={18} className="mr-2" />
+                      Editar Clienta
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>

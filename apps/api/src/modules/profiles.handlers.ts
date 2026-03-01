@@ -22,6 +22,7 @@ type ProfilePatchBody = {
   apellido?: string;
   telefono?: string;
   email?: string;
+  puntos?: number;
 };
 
 export type ProfilesDeps = {
@@ -109,6 +110,7 @@ export function createProfilesHttpHandlers(deps: ProfilesDeps) {
       if (typeof body.apellido === 'string') updates.apellido = body.apellido.trim();
       if (typeof body.telefono === 'string') updates.telefono = body.telefono.trim();
       if (typeof body.email === 'string') updates.email = body.email.trim().toLowerCase();
+      if (typeof body.puntos === 'number') updates.puntos = body.puntos;
 
       if (Object.keys(updates).length === 0) {
         set.status = 400;
