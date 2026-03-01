@@ -288,3 +288,13 @@ Completado: implementado soporte para canje de puntos al crear citas.
 - La UI utiliza predominantemente `#223FA0`, blanco y negro.
 - Consistencia en botones, fondos y acentos.
 **Comentarios:** Branch: feature-24-rebranding-calixta-lab. Completado: actualizado nombre a Calixta Lab, ajustada paleta de colores (Azul #223FA0, Negro, Blanco) e integrados los nuevos logos en Navbar, Login y Register.
+
+## [25] Admin UI: mostrar precios y total en modal de citas
+**Estado:** done
+**Descripción:** En el modal de creación de cita de admin:
+a. Mostrar el precio monetario de los servicios en las cards de cada servicio.
+b. Mostrar el total a pagar en el resumen de la cita sumando los servicios seleccionados como 'Compra' (excluyendo canjes).
+**Criterios de aceptacion:**
+- Cada servicio en la lista muestra su precio.
+- El resumen de la cita tiene una línea 'Total a pagar' que se actualiza dinámicamente según la selección de compras.
+**Comentarios:** Completado en este mismo prompt. Se actualizó `Citas.tsx`.
