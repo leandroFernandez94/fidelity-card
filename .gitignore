@@ -18,6 +18,10 @@ dist-ssr
 # Secrets
 .env
 
+# Playwright
+playwright-report
+test-results
+
 # OpenCode local skills and config
 .agents/
 opencode.json

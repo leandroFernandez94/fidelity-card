@@ -10,12 +10,17 @@
     "db:generate": "dotenv -e .env.example -- drizzle-kit generate",
     "db:migrate": "dotenv -e .env.example -- drizzle-kit migrate",
     "db:smoke": "dotenv -e .env.example -- bun scripts/smoke-db.mjs",
+    "seed:admin": "bun scripts/seed-admin.mjs",
+    "seed:servicios": "bun scripts/seed-servicios.mjs",
+    "seed:clientas": "bun scripts/seed-clientas.mjs",
+    "seed:all": "bun run seed:admin && bun run seed:servicios && bun run seed:clientas",
     "deps:install": "bun install",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.563.0",
@@ -27,6 +32,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/node": "^24.10.1",
     "@types/pg": "^8.16.0",
