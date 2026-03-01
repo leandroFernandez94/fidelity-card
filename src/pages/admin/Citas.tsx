@@ -154,6 +154,14 @@ export default function AdminCitas() {
     }, 0);
   }
 
+  function getPrecioTotal(items: { servicio_id: string; tipo: 'comprado' | 'canjeado' }[]) {
+    return items.reduce((acc, it) => {
+      if (it.tipo !== 'comprado') return acc;
+      const servicio = servicios.find((s) => s.id === it.servicio_id);
+      return acc + (servicio?.precio ?? 0);
+    }, 0);
+  }
+
   async function handleCreateCita(e: React.FormEvent) {
     e.preventDefault();
     if (submitting) return;
@@ -520,18 +528,24 @@ export default function AdminCitas() {
 
                     <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                       <div className="flex items-center justify-between mb-2">
-                        <label className="text-sm font-medium text-gray-700">Resumen de puntos</label>
+                        <label className="text-sm font-medium text-gray-700">Resumen de la cita</label>
                         <div className="text-xs text-gray-500">
-                          Disponibles: <span className="font-semibold">{formData.clienta_id ? getClientaById(formData.clienta_id)?.puntos ?? 0 : 0} pts</span>
+                          Puntos disponibles: <span className="font-semibold">{formData.clienta_id ? getClientaById(formData.clienta_id)?.puntos ?? 0 : 0} pts</span>
                         </div>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Puntos a descontar (canjes):</span>
-                        <span data-testid="puntos-descontar" className="font-bold text-red-600">-{getPuntosUtilizados(formData.items)} pts</span>
-                      </div>
-                      <div className="flex justify-between text-sm mt-1">
-                        <span className="text-gray-600">Puntos a ganar (compras):</span>
-                        <span data-testid="puntos-ganar" className="font-bold text-primary">+{getPuntosGanados(formData.items)} pts</span>
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Puntos a descontar (canjes):</span>
+                          <span data-testid="puntos-descontar" className="font-bold text-red-600">-{getPuntosUtilizados(formData.items)} pts</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Puntos a ganar (compras):</span>
+                          <span data-testid="puntos-ganar" className="font-bold text-primary">+{getPuntosGanados(formData.items)} pts</span>
+                        </div>
+                        <div className="flex justify-between text-sm pt-2 mt-2 border-t border-gray-200">
+                          <span className="font-medium text-gray-900">Total a pagar:</span>
+                          <span data-testid="precio-total" className="font-bold text-gray-900">${getPrecioTotal(formData.items)}</span>
+                        </div>
                       </div>
                       <p className="mt-2 text-xs text-gray-500 italic">
                         Los puntos se actualizarán en la cuenta de la clienta al completar la cita.
@@ -571,12 +585,17 @@ export default function AdminCitas() {
                                   htmlFor={`check-${servicio.id}`}
                                   className="flex-1 min-w-0 cursor-pointer"
                                 >
-                                  <div className="font-medium text-gray-900 truncate" data-testid="servicio-nombre">
-                                    {servicio.nombre}
+                                  <div className="flex items-center justify-between gap-2">
+                                    <div className="font-medium text-gray-900 truncate" data-testid="servicio-nombre">
+                                      {servicio.nombre}
+                                    </div>
+                                    <div className="text-sm font-semibold text-gray-900 shrink-0">
+                                      ${servicio.precio}
+                                    </div>
                                   </div>
                                   <div className="text-xs text-gray-500">
                                     {servicio.puntos_otorgados} pts otorgados
-                                    {servicio.puntos_requeridos && ` | ${servicio.puntos_requeridos} pts`}
+                                    {servicio.puntos_requeridos && ` | ${servicio.puntos_requeridos} pts req`}
                                   </div>
                                 </label>
                               </div>
