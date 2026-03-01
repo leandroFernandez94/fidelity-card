@@ -4,7 +4,7 @@ import type { Servicio } from '../../types';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
-import { Gem, Plus, Edit, Trash2, Search, Clock, Star } from 'lucide-react';
+import { Gem, Plus, Edit, Trash2, Search, Clock, Star, Gift } from 'lucide-react';
 import { formatearPrecio } from '../../utils';
 
 export default function AdminServicios() {
@@ -13,13 +13,16 @@ export default function AdminServicios() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [modalError, setModalError] = useState<string | null>(null);
   const [editingServicio, setEditingServicio] = useState<Servicio | null>(null);
   const [formData, setFormData] = useState({
     nombre: '',
     descripcion: '',
     precio: '',
     duracion_min: '',
-    puntos_otorgados: ''
+    puntos_otorgados: '',
+    puntos_requeridos: ''
   });
 
   useEffect(() => {
@@ -56,7 +59,8 @@ export default function AdminServicios() {
         descripcion: servicio.descripcion || '',
         precio: servicio.precio.toString(),
         duracion_min: servicio.duracion_min.toString(),
-        puntos_otorgados: servicio.puntos_otorgados.toString()
+        puntos_otorgados: servicio.puntos_otorgados.toString(),
+        puntos_requeridos: servicio.puntos_requeridos?.toString() || ''
       });
     } else {
       setEditingServicio(null);
@@ -65,7 +69,8 @@ export default function AdminServicios() {
         descripcion: '',
         precio: '',
         duracion_min: '',
-        puntos_otorgados: ''
+        puntos_otorgados: '',
+        puntos_requeridos: ''
       });
     }
     setModalOpen(true);
@@ -73,25 +78,34 @@ export default function AdminServicios() {
 
   function closeModal() {
     setModalOpen(false);
+    setSubmitting(false);
+    setModalError(null);
     setEditingServicio(null);
     setFormData({
       nombre: '',
       descripcion: '',
       precio: '',
       duracion_min: '',
-      puntos_otorgados: ''
+      puntos_otorgados: '',
+      puntos_requeridos: ''
     });
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (submitting) return;
+
+    setSubmitting(true);
+    setModalError(null);
+
     try {
       const servicioData = {
         nombre: formData.nombre,
         descripcion: formData.descripcion,
         precio: parseFloat(formData.precio),
         duracion_min: parseInt(formData.duracion_min),
-        puntos_otorgados: parseInt(formData.puntos_otorgados)
+        puntos_otorgados: parseInt(formData.puntos_otorgados),
+        puntos_requeridos: formData.puntos_requeridos.trim() ? parseInt(formData.puntos_requeridos) : null
       };
 
       if (editingServicio) {
@@ -106,6 +120,9 @@ export default function AdminServicios() {
       closeModal();
     } catch (error) {
       console.error('Error al guardar servicio:', error);
+      setModalError('No se pudo guardar el servicio. Intenta nuevamente.');
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -123,9 +140,10 @@ export default function AdminServicios() {
   }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+    const { id, name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.id]: e.target.value
+      [id || name]: value
     });
   }
 
@@ -227,6 +245,12 @@ export default function AdminServicios() {
                         <Star size={16} className="text-accent fill-accent" />
                         <span>+{servicio.puntos_otorgados} puntos</span>
                       </div>
+                      {servicio.puntos_requeridos && (
+                        <div className="flex items-center gap-2 text-accent font-medium">
+                          <Gift size={16} />
+                          <span>Canje: {servicio.puntos_requeridos} pts</span>
+                        </div>
+                      )}
                     </div>
 
                     <div className="mt-4 pt-4 border-t border-gray-200">
@@ -251,6 +275,11 @@ export default function AdminServicios() {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
+                  {modalError && (
+                    <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                      {modalError}
+                    </div>
+                  )}
                   <Input
                     id="nombre"
                     label="Nombre del Servicio"
@@ -304,15 +333,27 @@ export default function AdminServicios() {
                       min="0"
                     />
                   </div>
-                  <div className="flex justify-end gap-3 pt-4">
-                    <Button type="button" variant="outline" onClick={closeModal}>
-                      Cancelar
-                    </Button>
-                    <Button type="submit">
-                      {editingServicio ? 'Actualizar' : 'Crear'}
-                    </Button>
-                  </div>
-                </form>
+                  <Input
+                    id="puntos_requeridos"
+                    type="number"
+                    label="Puntos Requeridos"
+                    placeholder="Opcional"
+                    value={formData.puntos_requeridos}
+                    onChange={handleChange}
+                    min="0"
+                    name="puntos_requeridos"
+                  />
+
+
+                    <div className="flex justify-end gap-3 pt-4">
+                      <Button type="button" variant="outline" onClick={closeModal} disabled={submitting}>
+                        Cancelar
+                      </Button>
+                      <Button type="submit" data-testid="btn-crear-servicio" loading={submitting}>
+                        {editingServicio ? 'Actualizar' : 'Crear'}
+                      </Button>
+                    </div>
+                  </form>
               </CardContent>
             </Card>
           </div>

@@ -358,9 +358,20 @@ export default function AdminCitas() {
                               </span>
                             </div>
 
-                            <div className="text-sm text-gray-500 mt-2">
-                              {cita.servicio_ids.length} servicio{cita.servicio_ids.length > 1 ? 's' : ''}
-                            </div>
+                              <div className="text-sm text-gray-500 mt-2">
+                                {cita.servicio_ids.length} servicio{cita.servicio_ids.length > 1 ? 's' : ''}
+                                {cita.puntos_utilizados > 0 && (
+                                  <span className="ml-2 px-2 py-0.5 bg-red-50 text-red-600 rounded-full text-xs font-bold">
+                                    -{cita.puntos_utilizados} pts canjeados
+                                  </span>
+                                )}
+                                {cita.puntos_ganados > 0 && (
+                                  <span className="ml-2 px-2 py-0.5 bg-primary/10 text-primary rounded-full text-xs font-bold">
+                                    +{cita.puntos_ganados} pts otorgados
+                                  </span>
+                                )}
+                              </div>
+
 
                             {cita.notas && (
                               <p className="mt-3 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
@@ -524,7 +535,7 @@ export default function AdminCitas() {
                     <div className="flex items-center justify-between mb-2">
                       <label className="block text-sm font-medium text-gray-700">Servicios</label>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1" id="servicios-list-container" data-testid="servicios-list">
                       {servicios.map((servicio) => {
                         const item = formData.items.find(it => it.servicio_id === servicio.id);
                         const checked = !!item;
@@ -532,6 +543,7 @@ export default function AdminCitas() {
                         return (
                           <div
                             key={servicio.id}
+                            data-testid={`servicio-item-${servicio.nombre}`}
                             className={
                               'flex flex-col gap-2 rounded-lg border p-3 transition-colors ' +
                               (checked
@@ -541,23 +553,32 @@ export default function AdminCitas() {
                           >
                             <div className="flex items-center gap-3">
                               <input
+                                id={`check-${servicio.id}`}
+                                data-testid={`check-${servicio.nombre}`}
                                 type="checkbox"
                                 checked={checked}
                                 onChange={() => toggleServicio(servicio.id)}
+                                className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
                               />
-                              <div className="flex-1 min-w-0">
-                                <div className="font-medium text-gray-900 truncate">{servicio.nombre}</div>
+                              <label
+                                htmlFor={`check-${servicio.id}`}
+                                className="flex-1 min-w-0 cursor-pointer"
+                              >
+                                <div className="font-medium text-gray-900 truncate" data-testid="servicio-nombre">
+                                  {servicio.nombre}
+                                </div>
                                 <div className="text-xs text-gray-500">
                                   {servicio.puntos_otorgados} pts otorgados
                                   {servicio.puntos_requeridos && ` | ${servicio.puntos_requeridos} pts para canje`}
                                 </div>
-                              </div>
+                              </label>
                             </div>
-                            
+
                             {checked && (
                               <div className="flex gap-2 ml-7 mt-1">
                                 <button
                                   type="button"
+                                  data-testid="btn-comprado"
                                   onClick={() => setItemTipo(servicio.id, 'comprado')}
                                   className={`px-3 py-1 text-xs rounded-full border transition-colors ${
                                     item.tipo === 'comprado'
@@ -570,6 +591,7 @@ export default function AdminCitas() {
                                 {servicio.puntos_requeridos ? (
                                   <button
                                     type="button"
+                                    data-testid="btn-canjeado"
                                     onClick={() => setItemTipo(servicio.id, 'canjeado')}
                                     className={`px-3 py-1 text-xs rounded-full border transition-colors ${
                                       item.tipo === 'canjeado'
@@ -580,7 +602,7 @@ export default function AdminCitas() {
                                     Canjeado ({servicio.puntos_requeridos} pts)
                                   </button>
                                 ) : (
-                                  <span className="text-[10px] text-gray-400 self-center">No canjeable</span>
+                                  <span data-testid="no-canjeable" className="text-[10px] text-gray-400 self-center">No canjeable</span>
                                 )}
                               </div>
                             )}

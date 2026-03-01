@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { profilesService } from '../../services/profiles';
-import type { Profile } from '../../types';
+import { citasService } from '../../services/citas';
+import type { Profile, Cita } from '../../types';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
-import { Search, Edit, Eye, User, Mail, Phone, Gift, Users } from 'lucide-react';
-import { formatearFecha } from '../../utils';
+import { Search, Edit, Eye, User, Mail, Phone, Gift, Users, Calendar, Clock, CheckCircle } from 'lucide-react';
+import { formatearFecha, formatearHora, getEstadoCitaColor } from '../../utils';
 
 export default function AdminClientas() {
   const [clientas, setClientas] = useState<Profile[]>([]);
@@ -13,6 +14,8 @@ export default function AdminClientas() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClienta, setSelectedClienta] = useState<Profile | null>(null);
+  const [clientaCitas, setClientaCitas] = useState<Cita[]>([]);
+  const [loadingCitas, setLoadingCitas] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -48,7 +51,7 @@ export default function AdminClientas() {
     setSearchTerm(e.target.value);
   }
 
-  function verDetalles(clienta: Profile) {
+  async function verDetalles(clienta: Profile) {
     setSelectedClienta(clienta);
     setIsEditing(false);
     setFormData({
@@ -58,6 +61,17 @@ export default function AdminClientas() {
       puntos: clienta.puntos || 0
     });
     setModalOpen(true);
+    
+    // Cargar citas de la clienta
+    try {
+      setLoadingCitas(true);
+      const data = await citasService.getByClienta(clienta.id);
+      setClientaCitas(data.sort((a, b) => new Date(b.fecha_hora).getTime() - new Date(a.fecha_hora).getTime()));
+    } catch (error) {
+      console.error('Error al cargar citas de la clienta:', error);
+    } finally {
+      setLoadingCitas(false);
+    }
   }
 
   function toggleEdit() {
@@ -304,11 +318,69 @@ export default function AdminClientas() {
                     </div>
 
                     <div className="space-y-2 text-sm">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between border-b pb-2">
                         <span className="text-gray-600">Fecha de Registro</span>
                         <span className="font-medium">{formatearFecha(selectedClienta.created_at)}</span>
                       </div>
                     </div>
+
+                    {!isEditing && (
+                      <div className="mt-8">
+                        <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                          <Calendar size={20} className="text-primary" />
+                          Historial de Citas
+                        </h3>
+                        {loadingCitas ? (
+                          <div className="flex justify-center py-4">
+                            <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                          </div>
+                        ) : clientaCitas.length === 0 ? (
+                          <p className="text-center py-4 text-gray-500 text-sm italic">
+                            No hay citas registradas.
+                          </p>
+                        ) : (
+                          <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+                            {clientaCitas.map((cita) => (
+                              <div
+                                key={cita.id}
+                                className="p-3 bg-gray-50 rounded-lg border border-gray-100"
+                              >
+                                <div className="flex justify-between items-start mb-2">
+                                  <div className="flex items-center gap-2 text-xs font-medium">
+                                    <Calendar size={12} className="text-gray-400" />
+                                    {formatearFecha(cita.fecha_hora)}
+                                    <Clock size={12} className="text-gray-400 ml-1" />
+                                    {formatearHora(cita.fecha_hora)}
+                                  </div>
+                                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${getEstadoCitaColor(cita.estado)}`}>
+                                    {cita.estado}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between items-end">
+                                  <div className="text-xs text-gray-500">
+                                    {cita.servicio_ids.length} servicio{cita.servicio_ids.length !== 1 ? 's' : ''}
+                                  </div>
+                                  <div className="flex gap-2">
+                                    {cita.puntos_ganados > 0 && (
+                                      <span className="text-[10px] font-bold text-primary flex items-center gap-0.5">
+                                        <CheckCircle size={10} />
+                                        +{cita.puntos_ganados} pts
+                                      </span>
+                                    )}
+                                    {cita.puntos_utilizados > 0 && (
+                                      <span className="text-[10px] font-bold text-red-500 flex items-center gap-0.5">
+                                        <Gift size={10} />
+                                        -{cita.puntos_utilizados} pts
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 

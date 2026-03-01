@@ -14,6 +14,7 @@ export type ServicioCreateBody = {
   precio: number;
   duracion_min: number;
   puntos_otorgados: number;
+  puntos_requeridos?: number;
 };
 
 export type ServicioPatchBody = Partial<ServicioCreateBody>;
@@ -71,6 +72,7 @@ export function createServiciosHttpHandlers(deps: ServiciosDeps) {
           precio: body.precio,
           duracion_min: body.duracion_min,
           puntos_otorgados: body.puntos_otorgados,
+          puntos_requeridos: body.puntos_requeridos,
         })
         .returning();
 
@@ -96,6 +98,7 @@ export function createServiciosHttpHandlers(deps: ServiciosDeps) {
       if (typeof body.precio === 'number') updates.precio = body.precio;
       if (typeof body.duracion_min === 'number') updates.duracion_min = body.duracion_min;
       if (typeof body.puntos_otorgados === 'number') updates.puntos_otorgados = body.puntos_otorgados;
+      if (typeof body.puntos_requeridos === 'number' || body.puntos_requeridos === null) updates.puntos_requeridos = body.puntos_requeridos;
 
       if (Object.keys(updates).length === 0) {
         set.status = 400;

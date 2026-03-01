@@ -21,6 +21,7 @@ export function registerServiciosRoutes(app: AnyElysia) {
           precio: t.Integer({ minimum: 0 }),
           duracion_min: t.Integer({ minimum: 1 }),
           puntos_otorgados: t.Integer({ minimum: 0 }),
+          puntos_requeridos: t.Optional(t.Integer({ minimum: 0 })),
         }),
       }
     )
@@ -38,6 +39,7 @@ export function registerServiciosRoutes(app: AnyElysia) {
             precio: t.Optional(t.Integer({ minimum: 0 })),
             duracion_min: t.Optional(t.Integer({ minimum: 1 })),
             puntos_otorgados: t.Optional(t.Integer({ minimum: 0 })),
+            puntos_requeridos: t.Optional(t.Union([t.Integer({ minimum: 0 }), t.Null()])),
           },
           { minProperties: 1 }
         ),
