@@ -9,20 +9,20 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently -n frontend,backend -c cyan,magenta \"bun --cwd frontend run dev\" \"bun --cwd backend run dev\"",
-    "build": "bun --cwd frontend run build",
+    "dev": "concurrently -n frontend,backend -c cyan,magenta \"cd frontend && bun run dev\" \"cd backend && bun run dev\"",
+    "build": "cd frontend && bun run build",
     "lint": "eslint .",
-    "preview": "bun --cwd frontend run preview",
-    "api:dev": "bun --cwd backend run dev",
-    "api:start": "bun --cwd backend run start",
-    "db:generate": "bun --cwd backend run db:generate",
-    "db:migrate": "bun --cwd backend run db:migrate",
-    "db:smoke": "bun --cwd backend run db:smoke",
-    "seed:admin": "bun --cwd backend run seed:admin",
-    "seed:servicios": "bun --cwd backend run seed:servicios",
-    "seed:clientas": "bun --cwd backend run seed:clientas",
-    "seed:premios": "bun --cwd backend run seed:premios",
-    "seed:all": "bun --cwd backend run seed:all"
+    "preview": "cd frontend && bun run preview",
+    "api:dev": "cd backend && bun run dev",
+    "api:start": "cd backend && bun run start",
+    "db:generate": "cd backend && bun run db:generate",
+    "db:migrate": "cd backend && bun run db:migrate",
+    "db:smoke": "cd backend && bun run db:smoke",
+    "seed:admin": "cd backend && bun run seed:admin",
+    "seed:servicios": "cd backend && bun run seed:servicios",
+    "seed:clientas": "cd backend && bun run seed:clientas",
+    "seed:premios": "cd backend && bun run seed:premios",
+    "seed:all": "cd backend && bun run seed:all"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",

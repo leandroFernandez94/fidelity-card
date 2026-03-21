@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "NODE_ENV=development bun --watch src/index.ts",
-    "start": "NODE_ENV=production bun src/index.ts",
+    "dev": "NODE_ENV=development bun --env-file=.env --watch src/index.ts",
+    "start": "NODE_ENV=production bun --env-file=.env src/index.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "seed:admin": "bun scripts/seed-admin.mjs",
