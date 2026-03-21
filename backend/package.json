@@ -1,0 +1,34 @@
+{
+  "name": "@fidelity-card/backend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "NODE_ENV=development bun --watch src/index.ts",
+    "start": "NODE_ENV=production bun src/index.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "seed:admin": "bun scripts/seed-admin.mjs",
+    "seed:servicios": "bun scripts/seed-servicios.mjs",
+    "seed:clientas": "bun scripts/seed-clientas.mjs",
+    "seed:premios": "bun scripts/seed-premios.mjs",
+    "seed:all": "bun run seed:admin && bun run seed:servicios && bun run seed:clientas && bun run seed:premios",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@fidelity-card/shared": "workspace:*",
+    "@elysiajs/jwt": "^1.3.0",
+    "bcryptjs": "^3.0.2",
+    "bun-types": "^1.2.22",
+    "drizzle-orm": "^0.45.1",
+    "elysia": "^1.3.8",
+    "pg": "^8.19.0"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.18",
+    "drizzle-kit": "^0.31.9",
+    "vitest": "^4.0.18"
+  }
+}
