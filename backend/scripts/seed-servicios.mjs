@@ -1,6 +1,6 @@
 import 'dotenv/config';
-import { db, closeDb } from '../apps/api/src/db/index.ts';
-import { servicios } from '../apps/api/src/db/schema/index.ts';
+import { db, closeDb } from '../src/db/index.ts';
+import { servicios } from '../src/db/schema/index.ts';
 import { eq } from 'drizzle-orm';
 
 const SERVICIOS_SEED = [

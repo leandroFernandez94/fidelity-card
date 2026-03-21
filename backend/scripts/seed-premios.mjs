@@ -1,6 +1,6 @@
 import 'dotenv/config';
-import { db, closeDb } from '../apps/api/src/db/index.ts';
-import { premios } from '../apps/api/src/db/schema/index.ts';
+import { db, closeDb } from '../src/db/index.ts';
+import { premios } from '../src/db/schema/index.ts';
 import { eq } from 'drizzle-orm';
 
 const PREMIOS_SEED = [

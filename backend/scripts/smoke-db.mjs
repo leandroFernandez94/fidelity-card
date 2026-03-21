@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { db, closeDb } from '../apps/api/src/db/index.ts';
+import { db, closeDb } from '../src/db/index.ts';
 import { sql } from 'drizzle-orm';
 
 try {
