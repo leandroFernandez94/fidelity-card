@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { serviciosService } from '../services/servicios';
-import type { Servicio } from '../types';
+import type { Servicio } from '@fidelity-card/shared';
 import { Card, CardContent } from '../components/Card';
 import { formatearPrecio } from '../utils';
 import { Gem, Clock, Star } from 'lucide-react';

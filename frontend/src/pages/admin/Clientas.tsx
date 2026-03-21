@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { profilesService } from '../../services/profiles';
 import { citasService } from '../../services/citas';
-import type { Profile, Cita } from '../../types';
+import type { Profile, Cita } from '@fidelity-card/shared';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';

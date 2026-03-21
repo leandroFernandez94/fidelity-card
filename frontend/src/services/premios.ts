@@ -1,5 +1,5 @@
 import { del, get, patch, post } from './api';
-import type { Premio } from '../types';
+import type { Premio } from '@fidelity-card/shared';
 
 export const premiosService = {
   async getAll(): Promise<Premio[]> {

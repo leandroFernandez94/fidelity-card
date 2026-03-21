@@ -1,5 +1,5 @@
 import { get, post } from './api';
-import type { Profile, Cita, Referido } from '../types';
+import type { Profile, Cita, Referido } from '@fidelity-card/shared';
 import { serviciosService } from './servicios';
 
 export const puntosService = {

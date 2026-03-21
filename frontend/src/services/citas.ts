@@ -1,5 +1,5 @@
 import { del, get, patch, post } from './api';
-import type { Cita } from '../types';
+import type { Cita } from '@fidelity-card/shared';
 
 type CitaItemInput = {
   servicio_id: string;

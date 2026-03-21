@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { citasService } from '../services/citas';
-import type { Cita } from '../types';
+import type { Cita } from '@fidelity-card/shared';
 import { Card, CardContent } from '../components/Card';
 import { formatearFecha, formatearHora, getEstadoCitaColor, esFechaPasada } from '../utils';
 import { ApiError } from '../services/api';

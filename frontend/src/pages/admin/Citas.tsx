@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { citasService } from '../../services/citas';
 import { profilesService } from '../../services/profiles';
 import { serviciosService } from '../../services/servicios';
-import type { Cita, Profile, Servicio } from '../../types';
+import type { Cita, Profile, Servicio } from '@fidelity-card/shared';
 import { Card, CardContent } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';

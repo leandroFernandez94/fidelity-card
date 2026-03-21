@@ -1,5 +1,5 @@
 import { get, patch } from './api';
-import type { Profile } from '../types';
+import type { Profile } from '@fidelity-card/shared';
 
 export const profilesService = {
   async getAll(): Promise<Profile[]> {

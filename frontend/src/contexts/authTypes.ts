@@ -1,4 +1,4 @@
-import type { Profile } from '../types';
+import type { Profile } from '@fidelity-card/shared';
 
 export type AuthUser = {
   id: string;

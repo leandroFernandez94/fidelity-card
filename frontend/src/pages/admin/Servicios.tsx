@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { serviciosService } from '../../services/servicios';
-import type { Servicio } from '../../types';
+import type { Servicio } from '@fidelity-card/shared';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';

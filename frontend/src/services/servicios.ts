@@ -1,5 +1,5 @@
 import { del, get, patch, post } from './api';
-import type { Servicio } from '../types';
+import type { Servicio } from '@fidelity-card/shared';
 
 export const serviciosService = {
   async getAll(): Promise<Servicio[]> {

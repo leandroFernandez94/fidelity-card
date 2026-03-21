@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { premiosService } from '../services/premios';
-import type { Premio } from '../types';
+import type { Premio } from '@fidelity-card/shared';
 import { Card, CardContent } from '../components/Card';
 import { Gift, Star, Info } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';

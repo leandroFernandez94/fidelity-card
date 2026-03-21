@@ -1,5 +1,5 @@
 import { get, post } from './api';
-import type { Referido } from '../types';
+import type { Referido } from '@fidelity-card/shared';
 
 export const referidosService = {
   async getAll(): Promise<Referido[]> {

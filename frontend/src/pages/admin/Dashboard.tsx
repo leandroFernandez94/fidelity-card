@@ -3,7 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { citasService } from '../../services/citas';
 import { profilesService } from '../../services/profiles';
 import { puntosService } from '../../services/puntos';
-import type { Cita } from '../../types';
+import type { Cita } from '@fidelity-card/shared';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/Card';
 import { Users, Calendar, Clock, CheckCircle } from 'lucide-react';
 import { formatearFecha } from '../../utils';

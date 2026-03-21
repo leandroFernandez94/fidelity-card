@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { premiosService } from '../../services/premios';
-import type { Premio } from '../../types';
+import type { Premio } from '@fidelity-card/shared';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
