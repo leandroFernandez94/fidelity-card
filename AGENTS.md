@@ -5,38 +5,71 @@ Guia para agentes de codigo en este repositorio. Resume comandos, estilo y regla
 ## Comandos principales
 
 - Instalar dependencias: `bun install`
-- Desarrollo (Vite): `bun run dev`
+- Desarrollo (unificado): `bun run dev` (inicia frontend + backend)
+- Desarrollo frontend solo: `bun --cwd frontend run dev`
+- Desarrollo backend solo: `bun --cwd backend run dev`
 - Build de produccion: `bun run build`
-- Preview build: `bun run preview`
+- Preview build: `bun --cwd frontend run preview`
 - Lint: `bun run lint`
+- DB migraciones: `bun run db:generate` y `bun run db:migrate`
+- Seed datos: `bun run seed:all` (o scripts individuales)
 
 ## Tests
 
-- No hay framework de tests configurado actualmente.
-- No existe comando para ejecutar un test individual.
-- Si se agrega testing, actualizar esta seccion con:
-  - comando general
-  - comando de un solo test
-  - patron de archivos de tests
+- Playwright configurado para E2E tests (root `e2e/`)
+- Vitest configurado para backend tests (`backend/src/__tests__/`)
+- No hay framework de tests para frontend unit tests
 
 ## Scripts disponibles (package.json)
 
-- `dev`: inicia Vite
-- `build`: `tsc -b` + `vite build`
-- `preview`: servidor del build
+- `dev`: inicia frontend (Vite) + backend (Bun) en paralelo con `concurrently`
+- `build`: compila frontend
 - `lint`: ESLint sobre todo el repo
+- `api:dev`: inicia solo backend
+- `db:generate`: genera migraciones Drizzle
+- `db:migrate`: ejecuta migraciones Drizzle
+- `seed:all`: ejecuta todos los scripts de seed
+- `seed:admin`, `seed:servicios`, `seed:clientas`, `seed:premios`: scripts individuales
 
-## Estructura del proyecto
+## Estructura del proyecto (Monorepo Bun Workspaces)
 
-- `src/`
-  - `components/`: UI reutilizable
-  - `pages/`: paginas principales (clienta + admin)
-  - `pages/admin/`: vistas de administracion
-- `services/`: cliente HTTP al backend
-  - `contexts/`: estado global (Auth)
-  - `utils/`: helpers
-  - `types/`: tipos TS
-- `docker-compose.yml`: Postgres local para dev
+```
+fidelity-card/
+├── frontend/                 # Workspace: @fidelity-card/frontend
+│   ├── src/
+│   │   ├── components/       # UI reutilizable
+│   │   ├── pages/            # Paginas (clienta + admin)
+│   │   │   └── admin/        # Vistas de administracion
+│   │   ├── services/         # Cliente HTTP al backend
+│   │   ├── contexts/         # Estado global (Auth)
+│   │   └── utils/            # Helpers
+│   ├── public/               # Activos estaticos
+│   ├── index.html            # Entry point Vite
+│   ├── vite.config.ts        # Config Vite (proxy /api -> :3001)
+│   ├── package.json          # Deps frontend
+│   └── tsconfig.json         # TS config con referencias
+├── backend/                  # Workspace: @fidelity-card/backend
+│   ├── src/
+│   │   ├── modules/          # Rutas y handlers API
+│   │   ├── domain/           # Logica de negocio y transformers
+│   │   ├── db/               # Drizzle ORM y esquemas
+│   │   └── __tests__/        # Tests backend (Vitest)
+│   ├── drizzle/              # Migraciones SQL
+│   ├── scripts/              # Scripts de seed
+│   ├── package.json          # Deps backend
+│   ├── tsconfig.json         # TS config con referencias
+│   └── drizzle.config.ts     # Config Drizzle Kit
+├── packages/shared/          # Workspace: @fidelity-card/shared
+│   ├── src/
+│   │   └── types/            # Tipos compartidos (Profile, Servicio, etc.)
+│   ├── package.json          # Sin deps (solo tipos)
+│   └── tsconfig.json         # TS config composite
+├── e2e/                      # Tests E2E Playwright
+├── docker-compose.yml        # Postgres local para dev
+├── package.json              # Root workspace config
+├── tsconfig.json             # Workspace coordinator
+└── tsconfig.base.json        # Shared TS config
+```
 
 ## Estilo de codigo (TypeScript/React)
 
