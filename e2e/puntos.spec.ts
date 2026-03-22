@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 
+const baseURL = 'http://localhost:5173';
+
 test.describe('Puntos y Canje de Servicios', () => {
   const adminEmail = 'admin@test.com';
   const adminPassword = 'admin123';
@@ -8,14 +10,14 @@ test.describe('Puntos y Canje de Servicios', () => {
 
   test.beforeEach(async ({ page }) => {
     // Login como Admin
-    await page.goto('/login');
+    await page.goto(`${baseURL}/login`);
     await page.getByLabel('Email').fill(adminEmail);
     await page.getByLabel('Contraseña').fill(adminPassword);
     await page.getByRole('button', { name: 'Iniciar Sesión' }).click();
     
     // Navegar a Gestión de Servicios (como hace admin.spec.ts)
     await page.getByRole('link', { name: 'Servicios' }).click();
-    await expect(page).toHaveURL('/admin/servicios');
+    await expect(page).toHaveURL(new RegExp(`${baseURL}/admin/servicios`));
   });
 
   test('debe permitir crear una cita con servicios comprados y canjeados', async ({ page }) => {
@@ -45,7 +47,7 @@ test.describe('Puntos y Canje de Servicios', () => {
     
     // 2. Ir a Citas y crear una nueva cita
     await page.getByRole('link', { name: 'Citas' }).click();
-    await expect(page).toHaveURL('/admin/citas');
+    await expect(page).toHaveURL(new RegExp(`${baseURL}/admin/citas`));
     
     // Recargar para limpiar cualquier estado
     await page.reload();
@@ -82,7 +84,7 @@ test.describe('Puntos y Canje de Servicios', () => {
     // Recargar para asegurar que los puntos se reflejen
     await page.reload();
     await page.waitForTimeout(2000);
-    await expect(page).toHaveURL('/admin/citas');
+    await expect(page).toHaveURL(new RegExp(`${baseURL}/admin/citas`));
 
     // Ahora crear la segunda cita usando esos puntos
     await page.getByRole('button', { name: 'Nueva Cita' }).click();
@@ -136,7 +138,7 @@ test.describe('Puntos y Canje de Servicios', () => {
   test('debe validar si la clienta no tiene suficientes puntos', async ({ page }) => {
     // 1. Ir a Citas
     await page.getByRole('link', { name: 'Citas' }).click();
-    await expect(page).toHaveURL('/admin/citas');
+    await expect(page).toHaveURL(new RegExp(`${baseURL}/admin/citas`));
     
     // Ir a servicios para crear un servicio caro
     await page.getByRole('link', { name: 'Servicios' }).click();
