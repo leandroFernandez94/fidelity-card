@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 
+const baseURL = 'http://localhost:5173';
+
 test.describe('Flujos de Administrador', () => {
   const testEmail = `admin-test-${Date.now()}@example.com`;
   const servicioNombre = `Servicio Test ${Date.now()}`;
@@ -18,14 +20,14 @@ test.describe('Flujos de Administrador', () => {
     // NOTA: En un entorno real, usaríamos storageState para estar ya logueados.
     
     // Login como admin (usando credenciales que deberían existir o crearse)
-    await page.goto('/login');
+    await page.goto(`${baseURL}/login`);
     await page.getByLabel('Email').fill('admin@test.com'); // Asumiendo credenciales de dev
     await page.getByLabel('Contraseña').fill('admin123');
     await page.getByRole('button', { name: 'Iniciar Sesión' }).click();
 
     // Navegar a Gestión de Servicios
     await page.getByRole('link', { name: 'Servicios' }).click();
-    await expect(page).toHaveURL('/admin/servicios');
+    await expect(page).toHaveURL(new RegExp(`${baseURL}/admin/servicios`));
 
     // Crear Servicio
     await page.getByRole('button', { name: 'Nuevo Servicio' }).click();
@@ -38,9 +40,18 @@ test.describe('Flujos de Administrador', () => {
     // Verificar creación
     await expect(page.getByText(servicioNombre)).toBeVisible();
 
-    // Editar Servicio
-    const card = page.locator('.bg-white', { hasText: servicioNombre });
-    await card.locator('button').first().click(); // El botón de editar (Edit icon)
+    // Editar Servicio - usar getByRole con aria-label o el nombre visible
+    // Los botones tienen aria-label implícito o usamos el icono
+    // Vamos a buscar el card y luego el primer botón (Edit)
+    const card = page.locator('div.bg-white', { hasText: servicioNombre });
+    
+    // Usar selector más específico: el botón de editar es el primero en el div de actions
+    // Tiene variant="outline"
+    await card.getByRole('button', { name: '' }).first().click();
+    
+    // Verificar que el modal de edición se abrió (contiene "Editar Servicio")
+    await expect(page.getByRole('heading', { name: 'Editar Servicio' })).toBeVisible();
+    
     await page.getByLabel('Nombre del Servicio').fill(`${servicioNombre} Editado`);
     await page.getByRole('button', { name: 'Actualizar' }).click();
 
@@ -48,9 +59,13 @@ test.describe('Flujos de Administrador', () => {
     await expect(page.getByText(`${servicioNombre} Editado`)).toBeVisible();
 
     // Eliminar Servicio
+    // El handler del dialog debe estar ANTES del click
     page.on('dialog', dialog => dialog.accept());
-    await card.locator('button').last().click(); // El botón de eliminar (Trash icon)
     
+    // El botón de eliminar es el segundo botón en el card
+    await card.getByRole('button').last().click();
+    
+    // Esperar a que el elemento desaparezca
     await expect(page.getByText(`${servicioNombre} Editado`)).not.toBeVisible();
   });
 });
