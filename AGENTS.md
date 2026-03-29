@@ -30,6 +30,9 @@ Guia para agentes de codigo en este repositorio. Resume comandos, estilo y regla
 - `db:migrate`: ejecuta migraciones Drizzle
 - `seed:all`: ejecuta todos los scripts de seed
 - `seed:admin`, `seed:servicios`, `seed:clientas`, `seed:premios`: scripts individuales
+- `e2e`: ejecuta tests E2E con Playwright
+- `e2e:ui`: abre la UI de Playwright para ejecutar tests interactivamente
+- `e2e:headed`: ejecuta tests con navegador visible
 
 ## Estructura del proyecto (Monorepo Bun Workspaces)
 
