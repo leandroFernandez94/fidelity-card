@@ -27,6 +27,10 @@ export type CitaItem = {
   tipo: 'comprado' | 'canjeado';
 };
 
+export type CitaItemInput = CitaItem;
+
+export type CitaEstado = 'pendiente' | 'confirmada' | 'completada' | 'cancelada';
+
 export interface Cita {
   id: string;
   clienta_id: string;
@@ -36,10 +40,17 @@ export interface Cita {
   fecha_hora: string;
   puntos_ganados: number;
   puntos_utilizados: number;
-  estado: 'pendiente' | 'confirmada' | 'completada' | 'cancelada';
+  estado: CitaEstado;
   notas?: string;
   created_at: string;
 }
+
+export type CitaCreateInput = {
+  clienta_id?: string;
+  items: CitaItemInput[];
+  fecha_hora: string;
+  notas?: string;
+};
 
 export interface Referido {
   id: string;
