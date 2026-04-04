@@ -25,6 +25,12 @@ export type CitaPatchBody = {
   notas?: string;
 };
 
+export type CitaUpdateBody = {
+  items: CitaItemInput[];
+  fecha_hora: string;
+  notas?: string;
+};
+
 export type CitaIdParams = {
   id: string;
 };
@@ -42,10 +48,24 @@ export type CitasListCtx = {
   query: CitasListQuery;
 };
 
+export type CitaGetCtx = {
+  auth?: unknown;
+  params: CitaIdParams;
+  set: { status?: number | string };
+};
+
 export type CitaCreateCtx = {
   auth?: unknown;
   status: StatusHelper;
   body: CitaCreateBody;
+  set: { status?: number | string };
+};
+
+export type CitaUpdateCtx = {
+  auth?: unknown;
+  status: StatusHelper;
+  params: CitaIdParams;
+  body: CitaUpdateBody;
   set: { status?: number | string };
 };
 
@@ -88,10 +108,10 @@ export function createCitasHttpHandlers(deps: CitasDeps) {
             .from(citas)
             .where(eq(citas.clienta_id, query.clienta_id))
             .orderBy(asc(citas.fecha_hora));
-          return rows.map(toPublicCita);
+          return rows.map((row) => toPublicCita(row));
         }
         const rows = await deps.db.select().from(citas).orderBy(asc(citas.fecha_hora));
-        return rows.map(toPublicCita);
+        return rows.map((row) => toPublicCita(row));
       }
 
       const clienta_id = jwt?.sub;
@@ -106,7 +126,7 @@ export function createCitasHttpHandlers(deps: CitasDeps) {
         .from(citas)
         .where(eq(citas.clienta_id, clienta_id))
         .orderBy(asc(citas.fecha_hora));
-      return rows.map(toPublicCita);
+      return rows.map((row) => toPublicCita(row));
     },
 
     /** Lista proximas citas (solo admin). */
@@ -122,7 +142,7 @@ export function createCitasHttpHandlers(deps: CitasDeps) {
         .from(citas)
         .where(gte(citas.fecha_hora, now))
         .orderBy(asc(citas.fecha_hora));
-      return rows.map(toPublicCita);
+      return rows.map((row) => toPublicCita(row));
     },
 
     /** Lista citas pendientes/confirmadas (solo admin). */
@@ -137,7 +157,7 @@ export function createCitasHttpHandlers(deps: CitasDeps) {
         .from(citas)
         .where(inArray(citas.estado, ['pendiente', 'confirmada']))
         .orderBy(asc(citas.fecha_hora));
-      return rows.map(toPublicCita);
+      return rows.map((row) => toPublicCita(row));
     },
 
     /** Crea una cita. Admin puede elegir clienta_id; clienta siempre crea para si misma. */
@@ -207,6 +227,125 @@ export function createCitasHttpHandlers(deps: CitasDeps) {
 
       set.status = 201;
       return toPublicCita(inserted);
+    },
+
+    /** Obtiene una cita por ID con sus items. */
+    getCita: async (ctx: unknown) => {
+      const { auth, params, set } = ctx as CitaGetCtx;
+      const jwt = ((auth as unknown) ?? null) as AuthJwtPayload | null;
+      if (!jwt?.sub) {
+        set.status = 401;
+        return { error: 'unauthorized' };
+      }
+
+      const existing = await deps.db.select().from(citas).where(eq(citas.id, params.id)).limit(1);
+      const cita = existing[0];
+      if (!cita) {
+        set.status = 404;
+        return { error: 'not_found' };
+      }
+
+      if (jwt.rol !== 'admin' && cita.clienta_id !== jwt.sub) {
+        set.status = 403;
+        return { error: 'forbidden' };
+      }
+
+      const rows = await deps.db
+        .select()
+        .from(citaServicios)
+        .where(eq(citaServicios.cita_id, params.id));
+
+      const items = rows.map((r) => ({
+        servicio_id: r.servicio_id,
+        tipo: r.tipo as 'comprado' | 'canjeado',
+      }));
+
+      return toPublicCita(cita, items);
+    },
+
+    /** Actualiza una cita (items, fecha_hora, notas). Solo admin, solo si estado es pendiente/confirmada. */
+    putCita: async (ctx: unknown) => {
+      const { auth, params, body, set } = ctx as CitaUpdateCtx;
+      const jwt = ((auth as unknown) ?? null) as AuthJwtPayload | null;
+      if (jwt?.rol !== 'admin') {
+        set.status = 403;
+        return { error: 'forbidden' };
+      }
+
+      const existing = await deps.db.select().from(citas).where(eq(citas.id, params.id)).limit(1);
+      const cita = existing[0];
+      if (!cita) {
+        set.status = 404;
+        return { error: 'not_found' };
+      }
+
+      if (cita.estado === 'completada' || cita.estado === 'cancelada') {
+        set.status = 403;
+        return { error: 'final_state' };
+      }
+
+      if (!body.items || body.items.length === 0) {
+        set.status = 400;
+        return { error: 'items_required' };
+      }
+
+      const servicioIds = body.items.map((it) => it.servicio_id);
+      const masters = await deps.db.select().from(servicios).where(inArray(servicios.id, servicioIds));
+
+      try {
+        validateCitaItems(body.items, masters);
+      } catch (e: any) {
+        set.status = 400;
+        return { error: e.message };
+      }
+
+      const { puntos_ganados, puntos_utilizados } = computeCitaTotals(body.items, masters);
+
+      const updated = await deps.db.transaction(async (tx) => {
+        // Eliminar items anteriores
+        await tx.delete(citaServicios).where(eq(citaServicios.cita_id, params.id));
+
+        // Insertar nuevos items
+        await tx.insert(citaServicios).values(
+          body.items.map((it) => {
+            const m = masters.find((s) => s.id === it.servicio_id)!;
+            return {
+              cita_id: params.id,
+              servicio_id: it.servicio_id,
+              tipo: it.tipo,
+              puntos_requeridos_snapshot: m.puntos_requeridos,
+              puntos_otorgados_snapshot: m.puntos_otorgados,
+            };
+          })
+        );
+
+        // Actualizar la cita
+        const rows = await tx
+          .update(citas)
+          .set({
+            servicio_ids: servicioIds,
+            fecha_hora: new Date(body.fecha_hora),
+            puntos_ganados,
+            puntos_utilizados,
+            notas: body.notas,
+          })
+          .where(eq(citas.id, params.id))
+          .returning();
+
+        return rows[0];
+      });
+
+      if (!updated) {
+        set.status = 500;
+        return { error: 'internal_server_error' };
+      }
+
+      const items = body.items.map((it) => ({
+        servicio_id: it.servicio_id,
+        tipo: it.tipo as 'comprado' | 'canjeado',
+      }));
+
+      return toPublicCita(updated, items);
     },
 
     /**

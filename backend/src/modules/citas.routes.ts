@@ -42,6 +42,34 @@ export function registerCitasRoutes(app: AnyElysia) {
         }),
       }
     )
+    .get(
+      '/api/citas/:id',
+      handlers.getCita,
+      {
+        params: t.Object({
+          id: t.String({ format: 'uuid' }),
+        }),
+      }
+    )
+    .put(
+      '/api/citas/:id',
+      handlers.putCita,
+      {
+        params: t.Object({
+          id: t.String({ format: 'uuid' }),
+        }),
+        body: t.Object({
+          items: t.Array(
+            t.Object({
+              servicio_id: t.String({ format: 'uuid' }),
+              tipo: t.Union([t.Literal('comprado'), t.Literal('canjeado')]),
+            })
+          ),
+          fecha_hora: t.String({ format: 'date-time' }),
+          notas: t.Optional(t.String()),
+        }),
+      }
+    )
     .patch(
       '/api/citas/:id',
       handlers.patchCita,

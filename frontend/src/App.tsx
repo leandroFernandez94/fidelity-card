@@ -13,6 +13,8 @@ import Premios from './pages/Premios';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminClientas from './pages/admin/Clientas';
 import AdminCitas from './pages/admin/Citas';
+import AdminNuevaCita from './pages/admin/NuevaCita';
+import AdminEditarCita from './pages/admin/EditarCita';
 import AdminServicios from './pages/admin/Servicios';
 import AdminPremios from './pages/admin/Premios';
 
@@ -98,6 +100,26 @@ function App() {
               <RequireAdmin>
                 <LayoutWithNav>
                   <AdminClientas />
+                </LayoutWithNav>
+              </RequireAdmin>
+            }
+          />
+          <Route
+            path="/admin/citas/nueva"
+            element={
+              <RequireAdmin>
+                <LayoutWithNav>
+                  <AdminNuevaCita />
+                </LayoutWithNav>
+              </RequireAdmin>
+            }
+          />
+          <Route
+            path="/admin/citas/:id/editar"
+            element={
+              <RequireAdmin>
+                <LayoutWithNav>
+                  <AdminEditarCita />
                 </LayoutWithNav>
               </RequireAdmin>
             }
