@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { citasService } from '../services/citas';
 import type { Cita } from '@fidelity-card/shared';
 import { Card, CardContent } from '../components/Card';
-import { formatearFecha, formatearHora, getEstadoCitaColor, esFechaPasada, capitalize } from '../utils';
+import { formatearFecha, formatearHora, getEstadoCitaColor, esFechaPasada } from '../utils';
 import { resolveCitaUpdateError } from '../utils/cita-errors';
 import { Calendar, Clock, AlertCircle, CheckCircle, XCircle, Clock as Pending } from 'lucide-react';
 
@@ -188,9 +188,9 @@ export default function MisCitas() {
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-3">
-                             <span className={`px-3 py-1 rounded-full text-sm font-medium ${getEstadoCitaColor(cita.estado)}`}>
-                               {capitalize(cita.estado)}
-                             </span>
+                             <span className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${getEstadoCitaColor(cita.estado)}`}>
+                                {cita.estado}
+                              </span>
                             {getEstadoIcon(cita.estado)}
                           </div>
                           
@@ -294,8 +294,8 @@ export default function MisCitas() {
                       <div className="font-medium text-gray-900">
                         {formatearFecha(cita.fecha_hora)} - {formatearHora(cita.fecha_hora)}
                       </div>
-                      <div className="text-sm text-gray-500">
-                        {capitalize(cita.estado)}
+                      <div className="text-sm text-gray-500 capitalize">
+                        {cita.estado}
                       </div>
                     </div>
                     <div className="text-primary font-semibold">

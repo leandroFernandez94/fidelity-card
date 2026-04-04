@@ -8,7 +8,7 @@ import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { Select } from '../../components/Select';
 import { Calendar, Clock, User, Plus, Filter, CheckCircle, XCircle, AlertCircle, Pencil } from 'lucide-react';
-import { formatearFecha, formatearHora, getEstadoCitaColor, esFechaPasada, capitalize } from '../../utils';
+import { formatearFecha, formatearHora, getEstadoCitaColor, esFechaPasada } from '../../utils';
 import { resolveCitaUpdateError } from '../../utils/cita-errors';
 
 type CitaEstado = Cita['estado'];
@@ -190,8 +190,8 @@ export default function AdminCitas() {
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-3">
-                              <span className={`px-3 py-1 rounded-full text-sm font-medium ${getEstadoCitaColor(cita.estado)}`}>
-                                {capitalize(cita.estado)}
+                              <span className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${getEstadoCitaColor(cita.estado)}`}>
+                                {cita.estado}
                               </span>
                             </div>
 
