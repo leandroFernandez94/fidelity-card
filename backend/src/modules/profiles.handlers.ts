@@ -4,7 +4,7 @@ import { db as defaultDb } from '../db';
 import { profiles } from '../db/schema';
 import { toPublicProfile } from '../domain/transformers/profiles';
 import type { StatusHelper } from '../domain/types/http';
-import type { Rol } from '../domain/types/auth';
+import type { Rol } from '@fidelity-card/shared';
 
 import { guardAdmin, guardAuth } from './auth-helpers';
 

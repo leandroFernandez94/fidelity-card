@@ -1,7 +1,4 @@
-export type CitaItemInput = {
-  servicio_id: string;
-  tipo: 'comprado' | 'canjeado';
-};
+import type { CitaItemInput } from '@fidelity-card/shared';
 
 export type ServicioMaster = {
   id: string;

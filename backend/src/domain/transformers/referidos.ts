@@ -1,4 +1,4 @@
-import type { PublicReferido } from '../types/referidos';
+import type { Referido as PublicReferido } from '@fidelity-card/shared';
 import { asIsoString } from './iso';
 
 export function toPublicReferido(row: {

@@ -1,17 +1,5 @@
 import { del, get, patch, post, put } from './api';
-import type { Cita } from '@fidelity-card/shared';
-
-type CitaItemInput = {
-  servicio_id: string;
-  tipo: 'comprado' | 'canjeado';
-};
-
-type CitaCreateInput = {
-  clienta_id?: string;
-  items: CitaItemInput[];
-  fecha_hora: string;
-  notas?: string;
-};
+import type { Cita, CitaItemInput, CitaCreateInput } from '@fidelity-card/shared';
 
 export const citasService = {
   async getAll(): Promise<Cita[]> {

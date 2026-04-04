@@ -1,7 +1,7 @@
 import { Elysia } from 'elysia';
-import { jwt } from '@elysiajs/jwt';
+import type { Rol } from '@fidelity-card/shared';
 
-export type Rol = 'admin' | 'clienta';
+export type { Rol };
 
 export type AuthJwtPayload = {
   sub: string;

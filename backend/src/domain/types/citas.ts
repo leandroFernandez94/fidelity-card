@@ -1,19 +1,5 @@
-export type CitaEstado = 'pendiente' | 'confirmada' | 'completada' | 'cancelada';
+import type { Cita, CitaItem, CitaEstado } from '@fidelity-card/shared';
 
-export type CitaItem = {
-  servicio_id: string;
-  tipo: 'comprado' | 'canjeado';
-};
+export type { CitaItem, CitaEstado };
 
-export type PublicCita = {
-  id: string;
-  clienta_id: string;
-  servicio_ids: string[];
-  items?: CitaItem[];
-  fecha_hora: string;
-  puntos_ganados: number;
-  puntos_utilizados: number;
-  estado: CitaEstado;
-  notas?: string;
-  created_at: string;
-};
+export type PublicCita = Omit<Cita, 'servicios'>;
