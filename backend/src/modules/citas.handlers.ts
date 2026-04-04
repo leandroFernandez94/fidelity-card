@@ -10,8 +10,7 @@ import { toPublicCita } from '../domain/transformers/citas';
 import type { CitaEstado } from '../domain/types/citas';
 import type { StatusHelper } from '../domain/types/http';
 
-import { requireAuth, requireAdmin } from './auth-context';
-import type { AuthJwtPayload } from './auth-context';
+import { extractJwt } from './auth-helpers';
 
 export type CitaCreateBody = {
   clienta_id: string;
@@ -97,11 +96,10 @@ export function createCitasHttpHandlers(deps: CitasDeps) {
     /** Lista citas. Admin puede listar todas o por clienta; clienta solo sus citas. */
     listCitas: async (ctx: unknown) => {
       const { auth, query } = ctx as CitasListCtx;
-      const jwt = ((auth as unknown) ?? null) as AuthJwtPayload | null;
-      const denied = requireAuth({ auth: jwt, status: () => {} });
-      if (denied) return [];
+      const jwt = extractJwt(auth);
+      if (!jwt) return [];
 
-      if (jwt?.rol === 'admin') {
+      if (jwt.rol === 'admin') {
         if (query.clienta_id && query.clienta_id !== 'me') {
           const rows = await deps.db
             .select()
@@ -114,7 +112,7 @@ export function createCitasHttpHandlers(deps: CitasDeps) {
         return rows.map((row) => toPublicCita(row));
       }
 
-      const clienta_id = jwt?.sub;
+      const clienta_id = jwt.sub;
       if (!clienta_id) return [];
 
       if (query.clienta_id && query.clienta_id !== 'me' && query.clienta_id !== clienta_id) {
@@ -132,9 +130,8 @@ export function createCitasHttpHandlers(deps: CitasDeps) {
     /** Lista proximas citas (solo admin). */
     listProximasCitas: async (ctx: unknown) => {
       const { auth } = ctx as { auth?: unknown };
-      const jwt = ((auth as unknown) ?? null) as AuthJwtPayload | null;
-      const denied = requireAdmin({ auth: jwt, status: () => {} });
-      if (denied) return [];
+      const jwt = extractJwt(auth);
+      if (!jwt || jwt.rol !== 'admin') return [];
 
       const now = new Date();
       const rows = await deps.db

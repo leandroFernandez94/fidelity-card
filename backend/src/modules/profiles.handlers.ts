@@ -6,8 +6,7 @@ import { toPublicProfile } from '../domain/transformers/profiles';
 import type { StatusHelper } from '../domain/types/http';
 import type { Rol } from '../domain/types/auth';
 
-import { requireAuth, requireAdmin } from './auth-context';
-import type { AuthJwtPayload } from './auth-context';
+import { guardAdmin, guardAuth } from './auth-helpers';
 
 type ProfileQuery = {
   rol?: Rol;
@@ -55,9 +54,8 @@ export function createProfilesHttpHandlers(deps: ProfilesDeps) {
   return {
     listProfiles: async (ctx: unknown) => {
       const { auth, status, query } = ctx as ProfilesListCtx;
-      const jwt = ((auth as unknown) ?? null) as AuthJwtPayload | null;
-      const denied = requireAdmin({ auth: jwt, status });
-      if (denied) return denied;
+      const result = guardAdmin({ auth, status });
+      if (!result.ok) return result.response;
 
       if (query.rol) {
         const rows = await deps.db
@@ -74,11 +72,10 @@ export function createProfilesHttpHandlers(deps: ProfilesDeps) {
 
     getProfileById: async (ctx: unknown) => {
       const { auth, status, params, set } = ctx as ProfileGetCtx;
-      const jwt = ((auth as unknown) ?? null) as AuthJwtPayload | null;
-      const denied = requireAuth({ auth: jwt, status });
-      if (denied) return denied;
+      const result = guardAuth({ auth, status });
+      if (!result.ok) return result.response;
 
-      if (jwt?.rol !== 'admin' && jwt?.sub !== params.id) {
+      if (result.jwt.rol !== 'admin' && result.jwt.sub !== params.id) {
         set.status = 403;
         return { error: 'forbidden' };
       }
@@ -95,11 +92,10 @@ export function createProfilesHttpHandlers(deps: ProfilesDeps) {
 
     patchProfile: async (ctx: unknown) => {
       const { auth, status, params, body, set } = ctx as ProfilePatchCtx;
-      const jwt = ((auth as unknown) ?? null) as AuthJwtPayload | null;
-      const denied = requireAuth({ auth: jwt, status });
-      if (denied) return denied;
+      const result = guardAuth({ auth, status });
+      if (!result.ok) return result.response;
 
-      if (jwt?.rol !== 'admin' && jwt?.sub !== params.id) {
+      if (result.jwt.rol !== 'admin' && result.jwt.sub !== params.id) {
         set.status = 403;
         return { error: 'forbidden' };
       }

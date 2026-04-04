@@ -5,8 +5,7 @@ import { toPublicProfile } from '../domain/transformers/profiles';
 import { toPublicReferido } from '../domain/transformers/referidos';
 import type { StatusHelper } from '../domain/types/http';
 
-import { requireAuth, requireAdmin } from './auth-context';
-import type { AuthJwtPayload } from './auth-context';
+import { guardAuth, guardAdmin } from './auth-helpers';
 
 type ReferidosQuery = {
   referente_id?: string;
@@ -61,20 +60,19 @@ export function createReferidosHandlers(deps: ReferidosDeps) {
   return {
     list: async (ctx: unknown) => {
       const { auth, status, query } = ctx as ReferidosListCtx;
-      const jwt = ((auth as unknown) ?? null) as AuthJwtPayload | null;
-      const denied = requireAuth({ auth: jwt, status });
-      if (denied) return denied;
+      const result = guardAuth({ auth, status });
+      if (!result.ok) return result.response;
 
       const referenteId = query.referente_id;
       if (!referenteId) {
-        if (jwt?.rol !== 'admin') {
+        if (result.jwt.rol !== 'admin') {
           return status(403, { error: 'forbidden' });
         }
         const rows = await deps.db.select().from(referidos).orderBy(desc(referidos.fecha));
         return rows.map(toPublicReferido);
       }
 
-      if (jwt?.rol !== 'admin' && jwt?.sub !== referenteId) {
+      if (result.jwt.rol !== 'admin' && result.jwt.sub !== referenteId) {
         return status(403, { error: 'forbidden' });
       }
 
@@ -87,9 +85,8 @@ export function createReferidosHandlers(deps: ReferidosDeps) {
     },
     create: async (ctx: unknown) => {
       const { auth, status, body, set } = ctx as ReferidosCreateCtx;
-      const jwt = ((auth as unknown) ?? null) as AuthJwtPayload | null;
-      const denied = requireAdmin({ auth: jwt, status });
-      if (denied) return denied;
+      const result = guardAdmin({ auth, status });
+      if (!result.ok) return result.response;
 
       const puntos = Math.max(0, body.puntos_ganados);
 
@@ -151,9 +148,8 @@ export function createReferidosHandlers(deps: ReferidosDeps) {
     },
     puntosTop: async (ctx: unknown) => {
       const { auth, status, query } = ctx as PuntosTopCtx;
-      const jwt = ((auth as unknown) ?? null) as AuthJwtPayload | null;
-      const denied = requireAuth({ auth: jwt, status });
-      if (denied) return denied;
+      const result = guardAuth({ auth, status });
+      if (!result.ok) return result.response;
 
       const limit = Math.min(Math.max(query.limit ?? 10, 1), 100);
 
@@ -168,9 +164,8 @@ export function createReferidosHandlers(deps: ReferidosDeps) {
     },
     sumarPuntos: async (ctx: unknown) => {
       const { auth, status, body, set } = ctx as PuntosAdjustCtx;
-      const jwt = ((auth as unknown) ?? null) as AuthJwtPayload | null;
-      const denied = requireAdmin({ auth: jwt, status });
-      if (denied) return denied;
+      const result = guardAdmin({ auth, status });
+      if (!result.ok) return result.response;
 
       const cantidad = Math.max(0, body.cantidad);
       const updated = await deps.db
@@ -191,9 +186,8 @@ export function createReferidosHandlers(deps: ReferidosDeps) {
     },
     restarPuntos: async (ctx: unknown) => {
       const { auth, status, body, set } = ctx as PuntosAdjustCtx;
-      const jwt = ((auth as unknown) ?? null) as AuthJwtPayload | null;
-      const denied = requireAdmin({ auth: jwt, status });
-      if (denied) return denied;
+      const result2 = guardAdmin({ auth, status });
+      if (!result2.ok) return result2.response;
 
       const found = await deps.db.select().from(profiles).where(eq(profiles.id, body.profile_id)).limit(1);
       const profile = found[0];
