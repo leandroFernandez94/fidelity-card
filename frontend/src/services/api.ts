@@ -93,6 +93,14 @@ export function post<T>(path: string, body?: unknown, init?: RequestInit) {
   });
 }
 
+export function put<T>(path: string, body?: unknown, init?: RequestInit) {
+  return request<T>(path, {
+    ...init,
+    method: 'PUT',
+    body: body === undefined ? undefined : JSON.stringify(body)
+  });
+}
+
 export function patch<T>(path: string, body?: unknown, init?: RequestInit) {
   return request<T>(path, {
     ...init,
