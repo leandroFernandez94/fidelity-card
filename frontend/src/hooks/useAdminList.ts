@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 
 export interface UseAdminListConfig<T, TForm> {
   fetchFn: () => Promise<T[]>;
@@ -26,7 +26,6 @@ export function useAdminList<T extends { id: string }, TForm>(
   } = config;
 
   const [items, setItems] = useState<T[]>([]);
-  const [filteredItems, setFilteredItems] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
@@ -40,7 +39,6 @@ export function useAdminList<T extends { id: string }, TForm>(
       try {
         const data = await fetchFn();
         setItems(data);
-        setFilteredItems(data);
       } catch (error) {
         console.error(`Error al cargar ${itemName}:`, error);
       } finally {
@@ -50,16 +48,12 @@ export function useAdminList<T extends { id: string }, TForm>(
     loadItems();
   }, [fetchFn, itemName]);
 
-  useEffect(() => {
-    const filtered = filterFn(items, searchTerm);
-    setFilteredItems(filtered);
-  }, [searchTerm, items, filterFn]);
+  const filteredItems = filterFn(items, searchTerm);
 
-  const refreshItems = useCallback(async () => {
+  async function refreshItems() {
     const data = await fetchFn();
     setItems(data);
-    setFilteredItems(data);
-  }, [fetchFn]);
+  }
 
   function handleSearch(e: React.ChangeEvent<HTMLInputElement>) {
     setSearchTerm(e.target.value);
