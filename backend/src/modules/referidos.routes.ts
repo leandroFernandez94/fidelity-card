@@ -1,0 +1,62 @@
+import { t } from 'elysia';
+import type { AnyElysia } from 'elysia';
+
+import { db as defaultDb } from '../db';
+
+import { createReferidosHandlers } from './referidos.handlers';
+
+/** Registra rutas HTTP para referidos y puntos. */
+export function registerReferidosRoutes(app: AnyElysia) {
+  const handlers = createReferidosHandlers({ db: defaultDb });
+
+  return app
+    .get(
+      '/api/referidos',
+      handlers.list,
+      {
+        query: t.Object({
+          referente_id: t.Optional(t.String({ format: 'uuid' })),
+        }),
+      }
+    )
+    .post(
+      '/api/referidos',
+      handlers.create,
+      {
+        body: t.Object({
+          referente_id: t.String({ format: 'uuid' }),
+          referida_id: t.String({ format: 'uuid' }),
+          puntos_ganados: t.Integer({ minimum: 0 }),
+        }),
+      }
+    )
+    .get(
+      '/api/puntos/top',
+      handlers.puntosTop,
+      {
+        query: t.Object({
+          limit: t.Optional(t.Integer({ minimum: 1, maximum: 100 })),
+        }),
+      }
+    )
+    .post(
+      '/api/puntos/sumar',
+      handlers.sumarPuntos,
+      {
+        body: t.Object({
+          profile_id: t.String({ format: 'uuid' }),
+          cantidad: t.Integer({ minimum: 0 }),
+        }),
+      }
+    )
+    .post(
+      '/api/puntos/restar',
+      handlers.restarPuntos,
+      {
+        body: t.Object({
+          profile_id: t.String({ format: 'uuid' }),
+          cantidad: t.Integer({ minimum: 0 }),
+        }),
+      }
+    );
+}

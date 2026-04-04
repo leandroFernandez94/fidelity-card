@@ -2,6 +2,7 @@ import { asc, eq } from 'drizzle-orm';
 
 import { db as defaultDb } from '../db';
 import { premios } from '../db/schema';
+import { toPublicPremio } from '../domain/transformers/premios';
 import type { StatusHelper } from '../domain/types/http';
 
 import { guardAdmin } from './auth-helpers';
@@ -49,8 +50,8 @@ export type PremioDeleteCtx = {
 export function createPremiosHttpHandlers(deps: PremiosDeps) {
   return {
     listPremios: async () => {
-      // Listamos todos por ahora (el FE puede filtrar por activo si desea)
-      return await deps.db.select().from(premios).orderBy(asc(premios.nombre));
+      const rows = await deps.db.select().from(premios).orderBy(asc(premios.nombre));
+      return rows.map(toPublicPremio);
     },
 
     createPremio: async (ctx: unknown) => {
@@ -75,7 +76,7 @@ export function createPremiosHttpHandlers(deps: PremiosDeps) {
       }
 
       set.status = 201;
-      return row;
+      return toPublicPremio(row);
     },
 
     patchPremio: async (ctx: unknown) => {
@@ -102,7 +103,7 @@ export function createPremiosHttpHandlers(deps: PremiosDeps) {
         return { error: 'not_found' };
       }
 
-      return row;
+      return toPublicPremio(row);
     },
 
     deletePremio: async (ctx: unknown) => {
