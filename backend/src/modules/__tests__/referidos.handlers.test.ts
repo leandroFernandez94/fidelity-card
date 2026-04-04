@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { profiles, referidos } from '../../db/schema';
 import { createReferidosHandlers } from '../referidos.handlers';
 import type { AuthJwtPayload } from '../auth-context';
-import type { PublicReferido } from '../../domain/types/referidos';
+import type { Referido as PublicReferido } from '@fidelity-card/shared';
 
 type ProfileRow = {
   id: string;

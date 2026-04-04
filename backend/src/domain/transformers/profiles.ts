@@ -1,4 +1,4 @@
-import type { PublicProfile, Rol } from '../types/auth';
+import type { Profile as PublicProfile, Rol } from '@fidelity-card/shared';
 import { asIsoString } from './iso';
 
 export function toPublicProfile(row: {

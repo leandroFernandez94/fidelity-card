@@ -1,7 +1,5 @@
 import type { CitaItemInput } from '@fidelity-card/shared';
 
-export type { CitaItemInput };
-
 export type ServicioMaster = {
   id: string;
   puntos_requeridos: number | null;

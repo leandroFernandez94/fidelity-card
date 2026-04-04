@@ -3,7 +3,8 @@ import { eq } from 'drizzle-orm';
 import { profiles, users } from '../db/schema';
 import { toPublicUser } from '../domain/transformers/auth';
 import { toPublicProfile } from '../domain/transformers/profiles';
-import type { Rol, SigninBody, SignupBody } from '../domain/types/auth';
+import type { Rol } from '@fidelity-card/shared';
+import type { SigninBody, SignupBody } from '../domain/types/auth';
 
 import type { AuthContextOptions, AuthJwtPayload } from './auth-context';
 

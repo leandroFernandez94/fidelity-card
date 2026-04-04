@@ -1,6 +1,3 @@
-export type { Rol } from '@fidelity-card/shared';
-export type { Profile as PublicProfile } from '@fidelity-card/shared';
-
 export type SignupBody = {
   email: string;
   password: string;
