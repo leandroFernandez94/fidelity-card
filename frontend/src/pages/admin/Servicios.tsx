@@ -7,6 +7,9 @@ import { Input } from '../../components/Input';
 import { Gem, Plus, Edit, Trash2, Search, Clock, Star, Gift } from 'lucide-react';
 import { formatearPrecio } from '../../utils';
 import { useAdminList } from '../../hooks/useAdminList';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import PageShell from '../../components/PageShell';
+import ErrorBanner from '../../components/ErrorBanner';
 
 interface ServicioFormData {
   nombre: string;
@@ -94,17 +97,12 @@ export default function AdminServicios() {
   });
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <LoadingSpinner fullScreen />;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between mb-8">
+    <PageShell>
+      <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               Gestión de Servicios
@@ -232,9 +230,7 @@ export default function AdminServicios() {
               <CardContent>
                 <form onSubmit={(e) => handleSubmit(e, (d) => d)} className="space-y-4">
                   {modalError && (
-                    <div id="modal-error" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                      {modalError}
-                    </div>
+                    <ErrorBanner id="modal-error" message={modalError} />
                   )}
                   <Input
                     id="nombre"
@@ -313,7 +309,6 @@ export default function AdminServicios() {
             </Card>
           </div>
         )}
-      </div>
-    </div>
+    </PageShell>
   );
 }

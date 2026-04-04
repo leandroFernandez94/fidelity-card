@@ -1,9 +1,31 @@
-import { Loader2 } from 'lucide-react';
+type SpinnerSize = 'sm' | 'md';
 
-export default function LoadingSpinner({ size = 24 }: { size?: number }) {
+interface LoadingSpinnerProps {
+  size?: SpinnerSize;
+  fullScreen?: boolean;
+  className?: string;
+}
+
+export default function LoadingSpinner({ size = 'md', fullScreen = false, className }: LoadingSpinnerProps) {
+  const sizeClasses = size === 'sm'
+    ? 'w-6 h-6 border-2'
+    : 'w-8 h-8 border-4';
+
+  const spinner = (
+    <div className={`${sizeClasses} border-primary border-t-transparent rounded-full animate-spin`} />
+  );
+
+  if (fullScreen) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        {spinner}
+      </div>
+    );
+  }
+
   return (
-    <div className="flex items-center justify-center">
-      <Loader2 className="animate-spin text-primary" size={size} />
+    <div className={`flex items-center justify-center${className ? ` ${className}` : ''}`}>
+      {spinner}
     </div>
   );
 }

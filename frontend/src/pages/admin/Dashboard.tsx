@@ -7,6 +7,7 @@ import type { Cita } from '@fidelity-card/shared';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/Card';
 import { Users, Calendar, Clock, CheckCircle } from 'lucide-react';
 import { formatearFecha, getEstadoCitaColor } from '../../utils';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 export default function AdminDashboard() {
   const { profile } = useAuth();
@@ -56,11 +57,7 @@ export default function AdminDashboard() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <LoadingSpinner fullScreen />;
   }
 
   return (

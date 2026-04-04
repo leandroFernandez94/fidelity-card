@@ -10,6 +10,9 @@ import { Select } from '../../components/Select';
 import { Calendar, Clock, User, Plus, Filter, CheckCircle, XCircle, AlertCircle, Pencil } from 'lucide-react';
 import { formatearFecha, formatearHora, getEstadoCitaColor, esFechaPasada } from '../../utils';
 import { resolveCitaUpdateError } from '../../utils/cita-errors';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import PageShell from '../../components/PageShell';
+import ErrorBanner from '../../components/ErrorBanner';
 
 type CitaEstado = Cita['estado'];
 
@@ -90,20 +93,15 @@ export default function AdminCitas() {
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <LoadingSpinner fullScreen />;
   }
 
   const proximasCitas = filteredCitas.filter(c => !esFechaPasada(c.fecha_hora));
   const citasPasadas = filteredCitas.filter(c => esFechaPasada(c.fecha_hora));
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between mb-8">
+    <PageShell>
+      <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               Gestión de Citas
@@ -122,9 +120,7 @@ export default function AdminCitas() {
         </div>
 
         {updateError && (
-          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {updateError}
-          </div>
+          <ErrorBanner message={updateError} className="mb-6" />
         )}
 
         <Card className="mb-6">
@@ -338,7 +334,6 @@ export default function AdminCitas() {
             </div>
           )}
         </div>
-      </div>
-    </div>
+      </PageShell>
   );
 }
