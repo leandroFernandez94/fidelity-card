@@ -7,9 +7,9 @@ import { Card, CardContent } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { Select } from '../../components/Select';
-import { ApiError } from '../../services/api';
 import { Calendar, Clock, User, Plus, Filter, CheckCircle, XCircle, AlertCircle, Pencil } from 'lucide-react';
 import { formatearFecha, formatearHora, getEstadoCitaColor, esFechaPasada } from '../../utils';
+import { resolveCitaUpdateError } from '../../utils/cita-errors';
 
 type CitaEstado = Cita['estado'];
 
@@ -75,24 +75,6 @@ export default function AdminCitas() {
     setFiltro({ estado: '', fecha: '' });
   }
 
-  function resolvePatchErrorMessage(error: unknown) {
-    if (!(error instanceof ApiError)) return 'No se pudo actualizar la cita. Intenta nuevamente.';
-
-    const details = error.details;
-    const code = typeof details === 'object' && details !== null
-      ? (details as Record<string, unknown>).error
-      : null;
-
-    if (code === 'final_state') return 'La cita ya esta finalizada y no se puede modificar.';
-    if (code === 'no_state_change') return 'La cita ya esta en ese estado.';
-    if (code === 'forbidden_transition') return 'No se puede cambiar el estado desde la situacion actual.';
-    if (code === 'conflict') return 'La cita se actualizo recientemente. Recarga e intenta de nuevo.';
-    if (code === 'forbidden_notas') return 'No tienes permisos para editar notas.';
-    if (code === 'unauthorized') return 'Necesitas iniciar sesion para continuar.';
-
-    return error.message || 'No se pudo actualizar la cita. Intenta nuevamente.';
-  }
-
   async function actualizarEstado(citaId: string, nuevoEstado: CitaEstado) {
     try {
       setUpdatingId(citaId);
@@ -101,7 +83,7 @@ export default function AdminCitas() {
       setCitas((prev) => prev.map((cita) => (cita.id === citaId ? updatedCita : cita)));
     } catch (error) {
       console.error('Error al actualizar estado:', error);
-      setUpdateError(resolvePatchErrorMessage(error));
+      setUpdateError(resolveCitaUpdateError(error));
     } finally {
       setUpdatingId((current) => (current === citaId ? null : current));
     }
@@ -208,8 +190,8 @@ export default function AdminCitas() {
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-3">
-                              <span className={`px-3 py-1 rounded-full text-sm font-medium ${getEstadoCitaColor(cita.estado)}`}>
-                                {cita.estado.charAt(0).toUpperCase() + cita.estado.slice(1)}
+                              <span className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${getEstadoCitaColor(cita.estado)}`}>
+                                {cita.estado}
                               </span>
                             </div>
 

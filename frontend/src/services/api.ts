@@ -1,3 +1,7 @@
+// ---------------------------------------------------------------------------
+// Error Types
+// ---------------------------------------------------------------------------
+
 type ApiErrorDetails = Record<string, unknown> | string | null;
 
 export class ApiError extends Error {
@@ -11,6 +15,10 @@ export class ApiError extends Error {
     this.details = details;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Internal Helpers
+// ---------------------------------------------------------------------------
 
 function isJsonResponse(contentType: string | null) {
   return Boolean(contentType && contentType.includes('application/json'));
@@ -34,6 +42,10 @@ function resolveErrorMessage(data: ApiErrorDetails, fallback: string) {
   }
   return fallback;
 }
+
+// ---------------------------------------------------------------------------
+// Core Transport
+// ---------------------------------------------------------------------------
 
 async function request<T>(path: string, init: RequestInit = {}) {
   const headers = new Headers(init.headers);

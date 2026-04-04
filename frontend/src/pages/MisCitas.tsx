@@ -5,7 +5,7 @@ import { citasService } from '../services/citas';
 import type { Cita } from '@fidelity-card/shared';
 import { Card, CardContent } from '../components/Card';
 import { formatearFecha, formatearHora, getEstadoCitaColor, esFechaPasada } from '../utils';
-import { ApiError } from '../services/api';
+import { resolveCitaUpdateError } from '../utils/cita-errors';
 import { Calendar, Clock, AlertCircle, CheckCircle, XCircle, Clock as Pending } from 'lucide-react';
 
 export default function MisCitas() {
@@ -127,27 +127,7 @@ export default function MisCitas() {
       setReloadKey((value) => value + 1);
     } catch (error) {
       console.error('Error al actualizar cita:', error);
-      if (error instanceof ApiError) {
-        const details = error.details;
-        const code = typeof details === 'object' && details !== null
-          ? (details as Record<string, unknown>).error
-          : null;
-
-        if (code === 'final_state') {
-          setError('La cita ya esta finalizada y no se puede modificar.');
-          return;
-        }
-        if (code === 'no_state_change') {
-          setError('La cita ya esta en ese estado.');
-          return;
-        }
-        if (code === 'forbidden_transition') {
-          setError('No podes cambiar el estado desde la situacion actual.');
-          return;
-        }
-      }
-
-      setError('No se pudo actualizar la cita. Intenta nuevamente.');
+      setError(resolveCitaUpdateError(error));
     } finally {
       setUpdatingId((current) => (current === citaId ? null : current));
     }
@@ -208,9 +188,9 @@ export default function MisCitas() {
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-3">
-                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${getEstadoCitaColor(cita.estado)}`}>
-                              {cita.estado.charAt(0).toUpperCase() + cita.estado.slice(1)}
-                            </span>
+                             <span className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${getEstadoCitaColor(cita.estado)}`}>
+                                {cita.estado}
+                              </span>
                             {getEstadoIcon(cita.estado)}
                           </div>
                           
@@ -314,8 +294,8 @@ export default function MisCitas() {
                       <div className="font-medium text-gray-900">
                         {formatearFecha(cita.fecha_hora)} - {formatearHora(cita.fecha_hora)}
                       </div>
-                      <div className="text-sm text-gray-500">
-                        {cita.estado.charAt(0).toUpperCase() + cita.estado.slice(1)}
+                      <div className="text-sm text-gray-500 capitalize">
+                        {cita.estado}
                       </div>
                     </div>
                     <div className="text-primary font-semibold">

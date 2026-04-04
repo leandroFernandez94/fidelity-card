@@ -48,3 +48,4 @@ export function getEstadoCitaColor(estado: string): string {
       return 'text-gray-600 bg-gray-100';
   }
 }
+
