@@ -48,3 +48,8 @@ export function getEstadoCitaColor(estado: string): string {
       return 'text-gray-600 bg-gray-100';
   }
 }
+
+export function capitalize(str: string): string {
+  if (!str) return str;
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}

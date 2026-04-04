@@ -46,10 +46,8 @@ export const citasService = {
     await del(`/api/citas/${id}`);
   },
 
-  async getProximas(fecha: Date = new Date()): Promise<Cita[]> {
-    const citas = await get<Cita[]>('/api/citas/proximas');
-    const limite = fecha.toISOString();
-    return citas.filter((cita) => cita.fecha_hora >= limite);
+  async getProximas(): Promise<Cita[]> {
+    return get<Cita[]>('/api/citas/proximas');
   },
 
   async getPendientes(): Promise<Cita[]> {

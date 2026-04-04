@@ -6,7 +6,7 @@ import { puntosService } from '../../services/puntos';
 import type { Cita } from '@fidelity-card/shared';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/Card';
 import { Users, Calendar, Clock, CheckCircle } from 'lucide-react';
-import { formatearFecha } from '../../utils';
+import { formatearFecha, getEstadoCitaColor } from '../../utils';
 
 export default function AdminDashboard() {
   const { profile } = useAuth();
@@ -133,13 +133,9 @@ export default function AdminDashboard() {
                           })}
                         </div>
                       </div>
-                      <div
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          cita.estado === 'confirmada'
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-yellow-100 text-yellow-700'
-                        }`}
-                      >
+                       <div
+                         className={`px-3 py-1 rounded-full text-xs font-medium ${getEstadoCitaColor(cita.estado)}`}
+                       >
                         {cita.estado}
                       </div>
                     </div>
