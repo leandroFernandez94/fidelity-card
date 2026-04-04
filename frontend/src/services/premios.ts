@@ -6,9 +6,8 @@ export const premiosService = {
     return get<Premio[]>('/api/premios');
   },
 
-  async getById(id: string): Promise<Premio | null> {
-    const premios = await get<Premio[]>('/api/premios');
-    return premios.find((p) => p.id === id) ?? null;
+  async getById(id: string): Promise<Premio> {
+    return get<Premio>(`/api/premios/${id}`);
   },
 
   async create(premio: Omit<Premio, 'id'>): Promise<Premio> {

@@ -11,6 +11,15 @@ export function registerPremiosRoutes(app: AnyElysia) {
 
   return app
     .get('/api/premios', handlers.listPremios)
+    .get(
+      '/api/premios/:id',
+      handlers.getPremio,
+      {
+        params: t.Object({
+          id: t.String({ format: 'uuid' }),
+        }),
+      }
+    )
     .post(
       '/api/premios',
       handlers.createPremio,

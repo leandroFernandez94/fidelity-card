@@ -43,6 +43,11 @@ export type ServicioPatchCtx = {
   set: { status?: number | string };
 };
 
+export type ServicioGetCtx = {
+  params: ServicioIdParams;
+  set: { status?: number | string };
+};
+
 export type ServicioDeleteCtx = {
   auth?: unknown;
   status: StatusHelper;
@@ -56,6 +61,17 @@ export function createServiciosHttpHandlers(deps: ServiciosDeps) {
     listServicios: async () => {
       const rows = await deps.db.select().from(servicios).orderBy(asc(servicios.nombre));
       return rows.map(toPublicServicio);
+    },
+
+    getServicio: async (ctx: unknown) => {
+      const { params, set } = ctx as ServicioGetCtx;
+      const rows = await deps.db.select().from(servicios).where(eq(servicios.id, params.id)).limit(1);
+      const row = rows[0];
+      if (!row) {
+        set.status = 404;
+        return { error: 'not_found' };
+      }
+      return toPublicServicio(row);
     },
 
     createServicio: async (ctx: unknown) => {

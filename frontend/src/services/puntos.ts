@@ -1,6 +1,5 @@
 import { get, post } from './api';
-import type { Profile, Cita, Referido } from '@fidelity-card/shared';
-import { serviciosService } from './servicios';
+import type { Profile } from '@fidelity-card/shared';
 
 export const puntosService = {
   async sumarPuntos(profileId: string, cantidad: number): Promise<Profile> {
@@ -14,34 +13,6 @@ export const puntosService = {
     return post<Profile>('/api/puntos/restar', {
       profile_id: profileId,
       cantidad
-    });
-  },
-
-  async calcularPuntosCita(servicioIds: string[]): Promise<number> {
-    let puntosTotal = 0;
-    
-    for (const servicioId of servicioIds) {
-      const servicio = await serviciosService.getById(servicioId);
-      if (servicio) {
-        puntosTotal += servicio.puntos_otorgados;
-      }
-    }
-    
-    return puntosTotal;
-  },
-
-  async otorgarPuntosCita(cita: Cita): Promise<void> {
-    if (cita.estado !== 'completada') return;
-    
-    const puntos = await this.calcularPuntosCita(cita.servicio_ids);
-    await this.sumarPuntos(cita.clienta_id, puntos);
-  },
-
-  async otorgarPuntosReferido(referenteId: string, referidaId: string, puntos: number): Promise<Referido> {
-    return post<Referido>('/api/referidos', {
-      referente_id: referenteId,
-      referida_id: referidaId,
-      puntos_ganados: puntos
     });
   },
 

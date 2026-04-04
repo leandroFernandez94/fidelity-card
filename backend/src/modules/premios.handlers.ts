@@ -20,6 +20,11 @@ type PremioIdParams = {
   id: string;
 };
 
+export type PremioGetCtx = {
+  params: PremioIdParams;
+  set: { status?: number | string };
+};
+
 export type PremiosDeps = {
   db: typeof defaultDb;
 };
@@ -52,6 +57,17 @@ export function createPremiosHttpHandlers(deps: PremiosDeps) {
     listPremios: async () => {
       const rows = await deps.db.select().from(premios).orderBy(asc(premios.nombre));
       return rows.map(toPublicPremio);
+    },
+
+    getPremio: async (ctx: unknown) => {
+      const { params, set } = ctx as PremioGetCtx;
+      const rows = await deps.db.select().from(premios).where(eq(premios.id, params.id)).limit(1);
+      const row = rows[0];
+      if (!row) {
+        set.status = 404;
+        return { error: 'not_found' };
+      }
+      return row;
     },
 
     createPremio: async (ctx: unknown) => {
