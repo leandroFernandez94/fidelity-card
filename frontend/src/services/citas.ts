@@ -1,4 +1,4 @@
-import { del, get, patch, post } from './api';
+import { del, get, patch, post, put } from './api';
 import type { Cita } from '@fidelity-card/shared';
 
 type CitaItemInput = {
@@ -18,9 +18,8 @@ export const citasService = {
     return get<Cita[]>('/api/citas');
   },
 
-  async getById(id: string): Promise<Cita | null> {
-    const citas = await get<Cita[]>('/api/citas');
-    return citas.find((cita) => cita.id === id) ?? null;
+  async getById(id: string): Promise<Cita> {
+    return get<Cita>(`/api/citas/${id}`);
   },
 
   async getByClienta(clientaId: string): Promise<Cita[]> {
@@ -33,6 +32,14 @@ export const citasService = {
 
   async update(id: string, updates: Partial<Cita>): Promise<Cita> {
     return patch<Cita>(`/api/citas/${id}`, updates);
+  },
+
+  async updateFull(id: string, data: {
+    items: CitaItemInput[];
+    fecha_hora: string;
+    notas?: string;
+  }): Promise<Cita> {
+    return put<Cita>(`/api/citas/${id}`, data);
   },
 
   async delete(id: string): Promise<void> {

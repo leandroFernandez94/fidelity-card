@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { citasService } from '../../services/citas';
 import { profilesService } from '../../services/profiles';
-import { serviciosService } from '../../services/servicios';
-import type { Cita, Profile, Servicio } from '@fidelity-card/shared';
+import type { Cita, Profile } from '@fidelity-card/shared';
 import { Card, CardContent } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { Select } from '../../components/Select';
 import { ApiError } from '../../services/api';
-import { Calendar, Clock, User, Plus, Filter, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, User, Plus, Filter, CheckCircle, XCircle, AlertCircle, Pencil } from 'lucide-react';
 import { formatearFecha, formatearHora, getEstadoCitaColor, esFechaPasada } from '../../utils';
 
 type CitaEstado = Cita['estado'];
@@ -16,7 +16,6 @@ type CitaEstado = Cita['estado'];
 export default function AdminCitas() {
   const [citas, setCitas] = useState<Cita[]>([]);
   const [clientas, setClientas] = useState<Profile[]>([]);
-  const [servicios, setServicios] = useState<Servicio[]>([]);
   const [filteredCitas, setFilteredCitas] = useState<Cita[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtro, setFiltro] = useState<{ estado: CitaEstado | ''; fecha: string }>({ estado: '', fecha: '' });
@@ -24,33 +23,16 @@ export default function AdminCitas() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [updateError, setUpdateError] = useState<string | null>(null);
 
-  const [modalOpen, setModalOpen] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [modalError, setModalError] = useState<string | null>(null);
-  const [formData, setFormData] = useState<{
-    clienta_id: string;
-    fecha_hora: string;
-    items: { servicio_id: string; tipo: 'comprado' | 'canjeado' }[];
-    notas: string;
-  }>({
-    clienta_id: '',
-    fecha_hora: '',
-    items: [],
-    notas: ''
-  });
-
   useEffect(() => {
     async function loadData() {
       try {
-        const [citasData, clientasData, serviciosData] = await Promise.all([
+        const [citasData, clientasData] = await Promise.all([
           citasService.getAll(),
-          profilesService.getByRol('clienta'),
-          serviciosService.getAll()
+          profilesService.getByRol('clienta')
         ]);
         setCitas(citasData);
         setFilteredCitas(citasData);
         setClientas(clientasData);
-        setServicios(serviciosData);
       } catch (error) {
         console.error('Error al cargar datos:', error);
       } finally {
@@ -68,7 +50,7 @@ export default function AdminCitas() {
     }
 
     if (filtro.fecha) {
-      filtered = filtered.filter(cita => 
+      filtered = filtered.filter(cita =>
         cita.fecha_hora.startsWith(filtro.fecha)
       );
     }
@@ -91,124 +73,6 @@ export default function AdminCitas() {
 
   function limpiarFiltros() {
     setFiltro({ estado: '', fecha: '' });
-  }
-
-  function toDateTimeLocalValue(date: Date) {
-    const tzOffsetMs = date.getTimezoneOffset() * 60_000;
-    return new Date(date.getTime() - tzOffsetMs).toISOString().slice(0, 16);
-  }
-
-  function openModal() {
-    const base = new Date();
-    base.setMinutes(0, 0, 0);
-    base.setHours(base.getHours() + 1);
-
-    setModalError(null);
-    setFormData({
-      clienta_id: '',
-      fecha_hora: toDateTimeLocalValue(base),
-      items: [],
-      notas: ''
-    });
-    setModalOpen(true);
-  }
-
-  function closeModal() {
-    setModalOpen(false);
-    setSubmitting(false);
-    setModalError(null);
-  }
-
-  function toggleServicio(servicioId: string) {
-    setFormData((prev) => {
-      const exists = prev.items.find((it) => it.servicio_id === servicioId);
-      return {
-        ...prev,
-        items: exists
-          ? prev.items.filter((it) => it.servicio_id !== servicioId)
-          : [...prev.items, { servicio_id: servicioId, tipo: 'comprado' }]
-      };
-    });
-  }
-
-  function setItemTipo(servicioId: string, tipo: 'comprado' | 'canjeado') {
-    setFormData((prev) => ({
-      ...prev,
-      items: prev.items.map((it) => (it.servicio_id === servicioId ? { ...it, tipo } : it))
-    }));
-  }
-
-  function getPuntosGanados(items: { servicio_id: string; tipo: 'comprado' | 'canjeado' }[]) {
-    return items.reduce((acc, it) => {
-      if (it.tipo !== 'comprado') return acc;
-      const servicio = servicios.find((s) => s.id === it.servicio_id);
-      return acc + (servicio?.puntos_otorgados ?? 0);
-    }, 0);
-  }
-
-  function getPuntosUtilizados(items: { servicio_id: string; tipo: 'comprado' | 'canjeado' }[]) {
-    return items.reduce((acc, it) => {
-      if (it.tipo !== 'canjeado') return acc;
-      const servicio = servicios.find((s) => s.id === it.servicio_id);
-      return acc + (servicio?.puntos_requeridos ?? 0);
-    }, 0);
-  }
-
-  function getPrecioTotal(items: { servicio_id: string; tipo: 'comprado' | 'canjeado' }[]) {
-    return items.reduce((acc, it) => {
-      if (it.tipo !== 'comprado') return acc;
-      const servicio = servicios.find((s) => s.id === it.servicio_id);
-      return acc + (servicio?.precio ?? 0);
-    }, 0);
-  }
-
-  async function handleCreateCita(e: React.FormEvent) {
-    e.preventDefault();
-    if (submitting) return;
-
-    setSubmitting(true);
-    setModalError(null);
-
-    try {
-      if (!formData.clienta_id) {
-        setModalError('Selecciona una clienta.');
-        return;
-      }
-      if (formData.items.length === 0) {
-        setModalError('Selecciona al menos un servicio.');
-        return;
-      }
-      if (!formData.fecha_hora) {
-        setModalError('Selecciona fecha y hora.');
-        return;
-      }
-
-      const clienta = getClientaById(formData.clienta_id);
-      const puntos_utilizados = getPuntosUtilizados(formData.items);
-
-      if (puntos_utilizados > (clienta?.puntos ?? 0)) {
-        setModalError('La clienta no tiene suficientes puntos para este canje.');
-        return;
-      }
-
-      const payload = {
-        clienta_id: formData.clienta_id,
-        items: formData.items,
-        fecha_hora: new Date(formData.fecha_hora).toISOString(),
-        notas: formData.notas.trim() ? formData.notas.trim() : undefined
-      };
-
-      await citasService.create(payload);
-
-      const citasData = await citasService.getAll();
-      setCitas(citasData);
-      closeModal();
-    } catch (error) {
-      console.error('Error al crear cita:', error);
-      setModalError('No se pudo crear la cita. Intenta nuevamente.');
-    } finally {
-      setSubmitting(false);
-    }
   }
 
   function resolvePatchErrorMessage(error: unknown) {
@@ -266,10 +130,12 @@ export default function AdminCitas() {
               Administra todas las citas del salón
             </p>
           </div>
-          <Button onClick={openModal}>
-            <Plus size={18} className="mr-2" />
-            Nueva Cita
-          </Button>
+          <Link to="/admin/citas/nueva">
+            <Button>
+              <Plus size={18} className="mr-2" />
+              Nueva Cita
+            </Button>
+          </Link>
         </div>
 
         {updateError && (
@@ -368,22 +234,21 @@ export default function AdminCitas() {
                               </span>
                             </div>
 
-                              <div className="text-sm text-gray-500 mt-2">
-                                <span data-testid="cita-servicios-count">
-                                  {cita.servicio_ids.length} servicio{cita.servicio_ids.length !== 1 ? 's' : ''}
+                            <div className="text-sm text-gray-500 mt-2">
+                              <span data-testid="cita-servicios-count">
+                                {cita.servicio_ids.length} servicio{cita.servicio_ids.length !== 1 ? 's' : ''}
+                              </span>
+                              {cita.puntos_utilizados > 0 && (
+                                <span className="ml-2 px-2 py-0.5 bg-red-50 text-red-600 rounded-full text-xs font-bold">
+                                  -{cita.puntos_utilizados} pts canjeados
                                 </span>
-                                {cita.puntos_utilizados > 0 && (
-                                  <span className="ml-2 px-2 py-0.5 bg-red-50 text-red-600 rounded-full text-xs font-bold">
-                                    -{cita.puntos_utilizados} pts canjeados
-                                  </span>
-                                )}
-                                {cita.puntos_ganados > 0 && (
-                                  <span className="ml-2 px-2 py-0.5 bg-primary/10 text-primary rounded-full text-xs font-bold">
-                                    +{cita.puntos_ganados} pts otorgados
-                                  </span>
-                                )}
-                              </div>
-
+                              )}
+                              {cita.puntos_ganados > 0 && (
+                                <span className="ml-2 px-2 py-0.5 bg-primary/10 text-primary rounded-full text-xs font-bold">
+                                  +{cita.puntos_ganados} pts otorgados
+                                </span>
+                              )}
+                            </div>
 
                             {cita.notas && (
                               <p className="mt-3 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
@@ -399,6 +264,16 @@ export default function AdminCitas() {
                                 Esperando confirmación
                               </div>
                             )}
+
+                            <Link to={`/admin/citas/${cita.id}/editar`}>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                              >
+                                <Pencil size={16} className="mr-2" />
+                                Editar
+                              </Button>
+                            </Link>
 
                             {(cita.estado === 'pendiente' || cita.estado === 'confirmada') && (
                               <Button
@@ -482,193 +357,6 @@ export default function AdminCitas() {
             </div>
           )}
         </div>
-
-        {modalOpen && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <Card className="w-full max-w-2xl max-h-[90vh] flex flex-col">
-              <CardContent className="p-0 flex flex-col h-full overflow-hidden">
-                <div className="p-6 border-b border-gray-100 flex items-center justify-between shrink-0">
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-900">Nueva Cita</h2>
-                    <p className="text-sm text-gray-500">Crea una cita para una clienta</p>
-                  </div>
-                  <Button type="button" variant="outline" onClick={closeModal}>
-                    Cerrar
-                  </Button>
-                </div>
-
-                <form onSubmit={handleCreateCita} className="flex flex-col h-full overflow-hidden">
-                  <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                    {modalError && (
-                      <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                        {modalError}
-                      </div>
-                    )}
-
-                    <Select
-                      id="clienta_id"
-                      label="Clienta"
-                      options={clientas.map((c) => ({
-                        value: c.id,
-                        label: `${c.nombre} ${c.apellido}`
-                      }))}
-                      value={formData.clienta_id}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, clienta_id: e.target.value }))}
-                      required
-                    />
-
-                    <Input
-                      id="fecha_hora"
-                      type="datetime-local"
-                      label="Fecha y Hora"
-                      value={formData.fecha_hora}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, fecha_hora: e.target.value }))}
-                      required
-                    />
-
-                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                      <div className="flex items-center justify-between mb-2">
-                        <label className="text-sm font-medium text-gray-700">Resumen de la cita</label>
-                        <div className="text-xs text-gray-500">
-                          Puntos disponibles: <span className="font-semibold">{formData.clienta_id ? getClientaById(formData.clienta_id)?.puntos ?? 0 : 0} pts</span>
-                        </div>
-                      </div>
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Puntos a descontar (canjes):</span>
-                          <span data-testid="puntos-descontar" className="font-bold text-red-600">-{getPuntosUtilizados(formData.items)} pts</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Puntos a ganar (compras):</span>
-                          <span data-testid="puntos-ganar" className="font-bold text-primary">+{getPuntosGanados(formData.items)} pts</span>
-                        </div>
-                        <div className="flex justify-between text-sm pt-2 mt-2 border-t border-gray-200">
-                          <span className="font-medium text-gray-900">Total a pagar:</span>
-                          <span data-testid="precio-total" className="font-bold text-gray-900">${getPrecioTotal(formData.items)}</span>
-                        </div>
-                      </div>
-                      <p className="mt-2 text-xs text-gray-500 italic">
-                        Los puntos se actualizarán en la cuenta de la clienta al completar la cita.
-                      </p>
-                    </div>
-
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <label className="block text-sm font-medium text-gray-700">Servicios</label>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" id="servicios-list-container" data-testid="servicios-list">
-                        {servicios.map((servicio) => {
-                          const item = formData.items.find(it => it.servicio_id === servicio.id);
-                          const checked = !!item;
-                          
-                          return (
-                            <div
-                              key={servicio.id}
-                              data-testid={`servicio-item-${servicio.nombre}`}
-                              className={
-                                'flex flex-col gap-2 rounded-lg border p-3 transition-colors ' +
-                                (checked
-                                  ? 'border-primary bg-primary/5'
-                                  : 'border-gray-200 hover:bg-gray-50')
-                              }
-                            >
-                              <div className="flex items-center gap-3">
-                                <input
-                                  id={`check-${servicio.id}`}
-                                  data-testid={`check-${servicio.nombre}`}
-                                  type="checkbox"
-                                  checked={checked}
-                                  onChange={() => toggleServicio(servicio.id)}
-                                  className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
-                                />
-                                <label
-                                  htmlFor={`check-${servicio.id}`}
-                                  className="flex-1 min-w-0 cursor-pointer"
-                                >
-                                  <div className="flex items-center justify-between gap-2">
-                                    <div className="font-medium text-gray-900 truncate" data-testid="servicio-nombre">
-                                      {servicio.nombre}
-                                    </div>
-                                    <div className="text-sm font-semibold text-gray-900 shrink-0">
-                                      ${servicio.precio}
-                                    </div>
-                                  </div>
-                                  <div className="text-xs text-gray-500">
-                                    {servicio.puntos_otorgados} pts otorgados
-                                    {servicio.puntos_requeridos && ` | ${servicio.puntos_requeridos} pts req`}
-                                  </div>
-                                </label>
-                              </div>
-
-                              {checked && (
-                                <div className="flex gap-2 ml-7 mt-1">
-                                  <button
-                                    type="button"
-                                    data-testid="btn-comprado"
-                                    onClick={() => setItemTipo(servicio.id, 'comprado')}
-                                    className={`px-3 py-1 text-xs rounded-full border transition-colors ${
-                                      item.tipo === 'comprado'
-                                        ? 'bg-primary text-white border-primary'
-                                        : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-                                    }`}
-                                  >
-                                    Compra
-                                  </button>
-                                  {servicio.puntos_requeridos ? (
-                                    <button
-                                      type="button"
-                                      data-testid="btn-canjeado"
-                                      onClick={() => setItemTipo(servicio.id, 'canjeado')}
-                                      disabled={!formData.clienta_id || (getClientaById(formData.clienta_id)?.puntos ?? 0) < (servicio.puntos_requeridos ?? 0)}
-                                      className={`px-3 py-1 text-xs rounded-full border transition-colors ${
-                                        item.tipo === 'canjeado'
-                                          ? 'bg-accent text-white border-accent'
-                                          : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed'
-                                      }`}
-                                      title={!formData.clienta_id ? 'Selecciona una clienta primero' : (getClientaById(formData.clienta_id)?.puntos ?? 0) < (servicio.puntos_requeridos ?? 0) ? 'Puntos insuficientes' : ''}
-                                    >
-                                      Canje
-                                    </button>
-                                  ) : (
-                                    <span data-testid="no-canjeable" className="text-[10px] text-gray-400 self-center">No canjeable</span>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                      {servicios.length === 0 && (
-                        <div className="text-sm text-gray-500">No hay servicios cargados.</div>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Notas (opcional)</label>
-                      <textarea
-                        id="notas"
-                        rows={3}
-                        value={formData.notas}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, notas: e.target.value }))}
-                        placeholder="Ej: traer diseño de referencia..."
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="p-6 border-t border-gray-100 flex justify-end gap-3 shrink-0">
-                    <Button type="button" variant="outline" onClick={closeModal} disabled={submitting}>
-                      Cancelar
-                    </Button>
-                    <Button type="submit" loading={submitting}>
-                      Crear Cita
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-          </div>
-        )}
       </div>
     </div>
   );

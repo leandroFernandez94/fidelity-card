@@ -22,11 +22,17 @@ export interface Servicio {
   created_at: string;
 }
 
+export type CitaItem = {
+  servicio_id: string;
+  tipo: 'comprado' | 'canjeado';
+};
+
 export interface Cita {
   id: string;
   clienta_id: string;
   servicio_ids: string[];
   servicios?: Servicio[];
+  items?: CitaItem[];
   fecha_hora: string;
   puntos_ganados: number;
   puntos_utilizados: number;
