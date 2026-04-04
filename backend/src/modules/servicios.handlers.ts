@@ -5,8 +5,7 @@ import { servicios } from '../db/schema';
 import { toPublicServicio } from '../domain/transformers/servicios';
 import type { StatusHelper } from '../domain/types/http';
 
-import { requireAdmin } from './auth-context';
-import type { AuthJwtPayload } from './auth-context';
+import { guardAdmin } from './auth-helpers';
 
 export type ServicioCreateBody = {
   nombre: string;
@@ -61,8 +60,8 @@ export function createServiciosHttpHandlers(deps: ServiciosDeps) {
 
     createServicio: async (ctx: unknown) => {
       const { auth, status, body, set } = ctx as ServicioCreateCtx;
-      const denied = requireAdmin({ auth: ((auth as unknown) ?? null) as AuthJwtPayload | null, status });
-      if (denied) return denied;
+      const result = guardAdmin({ auth, status });
+      if (!result.ok) return result.response;
 
       const inserted = await deps.db
         .insert(servicios)
@@ -88,8 +87,8 @@ export function createServiciosHttpHandlers(deps: ServiciosDeps) {
 
     patchServicio: async (ctx: unknown) => {
       const { auth, status, params, body, set } = ctx as ServicioPatchCtx;
-      const denied = requireAdmin({ auth: ((auth as unknown) ?? null) as AuthJwtPayload | null, status });
-      if (denied) return denied;
+      const result = guardAdmin({ auth, status });
+      if (!result.ok) return result.response;
 
       const updates: ServicioPatchBody = {};
 
@@ -117,8 +116,8 @@ export function createServiciosHttpHandlers(deps: ServiciosDeps) {
 
     deleteServicio: async (ctx: unknown) => {
       const { auth, status, params, set } = ctx as ServicioDeleteCtx;
-      const denied = requireAdmin({ auth: ((auth as unknown) ?? null) as AuthJwtPayload | null, status });
-      if (denied) return denied;
+      const result = guardAdmin({ auth, status });
+      if (!result.ok) return result.response;
 
       const deleted = await deps.db.delete(servicios).where(eq(servicios.id, params.id)).returning({ id: servicios.id });
       const row = deleted[0];

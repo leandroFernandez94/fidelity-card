@@ -4,8 +4,7 @@ import { db as defaultDb } from '../db';
 import { premios } from '../db/schema';
 import type { StatusHelper } from '../domain/types/http';
 
-import { requireAdmin } from './auth-context';
-import type { AuthJwtPayload } from './auth-context';
+import { guardAdmin } from './auth-helpers';
 
 export type PremioCreateBody = {
   nombre: string;
@@ -56,8 +55,8 @@ export function createPremiosHttpHandlers(deps: PremiosDeps) {
 
     createPremio: async (ctx: unknown) => {
       const { auth, status, body, set } = ctx as PremioCreateCtx;
-      const denied = requireAdmin({ auth: ((auth as unknown) ?? null) as AuthJwtPayload | null, status });
-      if (denied) return denied;
+      const result = guardAdmin({ auth, status });
+      if (!result.ok) return result.response;
 
       const inserted = await deps.db
         .insert(premios)
@@ -81,8 +80,8 @@ export function createPremiosHttpHandlers(deps: PremiosDeps) {
 
     patchPremio: async (ctx: unknown) => {
       const { auth, status, params, body, set } = ctx as PremioPatchCtx;
-      const denied = requireAdmin({ auth: ((auth as unknown) ?? null) as AuthJwtPayload | null, status });
-      if (denied) return denied;
+      const result = guardAdmin({ auth, status });
+      if (!result.ok) return result.response;
 
       const updates: Partial<typeof premios.$inferSelect> = {};
 
@@ -108,8 +107,8 @@ export function createPremiosHttpHandlers(deps: PremiosDeps) {
 
     deletePremio: async (ctx: unknown) => {
       const { auth, status, params, set } = ctx as PremioDeleteCtx;
-      const denied = requireAdmin({ auth: ((auth as unknown) ?? null) as AuthJwtPayload | null, status });
-      if (denied) return denied;
+      const result = guardAdmin({ auth, status });
+      if (!result.ok) return result.response;
 
       const deleted = await deps.db.delete(premios).where(eq(premios.id, params.id)).returning({ id: premios.id });
       const row = deleted[0];
