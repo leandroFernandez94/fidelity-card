@@ -6,6 +6,8 @@ import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { Gift, Plus, Edit, Trash2, Search, Star, CheckCircle2, XCircle } from 'lucide-react';
 import { useAdminList } from '../../hooks/useAdminList';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import PageShell from '../../components/PageShell';
 
 interface PremioFormData {
   nombre: string;
@@ -76,16 +78,11 @@ export default function AdminPremios() {
   });
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <LoadingSpinner fullScreen />;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4">
+    <PageShell>
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -263,7 +260,6 @@ export default function AdminPremios() {
             </Card>
           </div>
         )}
-      </div>
-    </div>
+    </PageShell>
   );
 }

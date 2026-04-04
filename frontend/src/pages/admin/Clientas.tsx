@@ -7,6 +7,8 @@ import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { Search, Edit, Eye, User, Mail, Phone, Gift, Users, Calendar, Clock, CheckCircle } from 'lucide-react';
 import { formatearFecha, formatearHora, getEstadoCitaColor } from '../../utils';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import PageShell from '../../components/PageShell';
 
 export default function AdminClientas() {
   const [clientas, setClientas] = useState<Profile[]>([]);
@@ -110,16 +112,11 @@ export default function AdminClientas() {
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <LoadingSpinner fullScreen />;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4">
+    <PageShell>
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Gestión de Clientas
@@ -331,9 +328,7 @@ export default function AdminClientas() {
                           Historial de Citas
                         </h3>
                         {loadingCitas ? (
-                          <div className="flex justify-center py-4">
-                            <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                          </div>
+                          <LoadingSpinner size="sm" className="py-4" />
                         ) : clientaCitas.length === 0 ? (
                           <p className="text-center py-4 text-gray-500 text-sm italic">
                             No hay citas registradas.
@@ -403,7 +398,6 @@ export default function AdminClientas() {
             </Card>
           </div>
         )}
-      </div>
-    </div>
+    </PageShell>
   );
 }
