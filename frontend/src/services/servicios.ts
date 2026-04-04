@@ -6,9 +6,8 @@ export const serviciosService = {
     return get<Servicio[]>('/api/servicios');
   },
 
-  async getById(id: string): Promise<Servicio | null> {
-    const servicios = await get<Servicio[]>('/api/servicios');
-    return servicios.find((servicio) => servicio.id === id) ?? null;
+  async getById(id: string): Promise<Servicio> {
+    return get<Servicio>(`/api/servicios/${id}`);
   },
 
   async create(servicio: Omit<Servicio, 'id' | 'created_at'>): Promise<Servicio> {

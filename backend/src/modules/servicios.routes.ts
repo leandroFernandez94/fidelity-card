@@ -11,6 +11,15 @@ export function registerServiciosRoutes(app: AnyElysia) {
 
   return app
     .get('/api/servicios', handlers.listServicios)
+    .get(
+      '/api/servicios/:id',
+      handlers.getServicio,
+      {
+        params: t.Object({
+          id: t.String({ format: 'uuid' }),
+        }),
+      }
+    )
     .post(
       '/api/servicios',
       handlers.createServicio,

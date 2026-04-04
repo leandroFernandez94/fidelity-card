@@ -6,9 +6,8 @@ export const referidosService = {
     return get<Referido[]>('/api/referidos');
   },
 
-  async getById(id: string): Promise<Referido | null> {
-    const referidos = await get<Referido[]>('/api/referidos');
-    return referidos.find((referido) => referido.id === id) ?? null;
+  async getById(id: string): Promise<Referido> {
+    return get<Referido>(`/api/referidos/${id}`);
   },
 
   async getByReferente(referenteId: string): Promise<Referido[]> {

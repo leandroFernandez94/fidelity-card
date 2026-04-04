@@ -11,6 +11,17 @@ type ReferidosQuery = {
   referente_id?: string;
 };
 
+type ReferidoIdParams = {
+  id: string;
+};
+
+type ReferidoGetCtx = {
+  auth?: unknown;
+  status: StatusHelper;
+  params: ReferidoIdParams;
+  set: { status?: number | string };
+};
+
 type ReferidosCreateBody = {
   referente_id: string;
   referida_id: string;
@@ -82,6 +93,25 @@ export function createReferidosHandlers(deps: ReferidosDeps) {
         .where(eq(referidos.referente_id, referenteId))
         .orderBy(desc(referidos.fecha));
       return rows.map(toPublicReferido);
+    },
+    getReferido: async (ctx: unknown) => {
+      const { auth, status, params, set } = ctx as ReferidoGetCtx;
+      const result = guardAuth({ auth, status });
+      if (!result.ok) return result.response;
+
+      const rows = await deps.db.select().from(referidos).where(eq(referidos.id, params.id)).limit(1);
+      const row = rows[0];
+      if (!row) {
+        set.status = 404;
+        return { error: 'not_found' };
+      }
+
+      if (result.jwt.rol !== 'admin' && result.jwt.sub !== row.referente_id) {
+        set.status = 403;
+        return { error: 'forbidden' };
+      }
+
+      return toPublicReferido(row);
     },
     create: async (ctx: unknown) => {
       const { auth, status, body, set } = ctx as ReferidosCreateCtx;

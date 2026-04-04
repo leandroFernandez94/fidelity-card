@@ -19,6 +19,15 @@ export function registerReferidosRoutes(app: AnyElysia) {
         }),
       }
     )
+    .get(
+      '/api/referidos/:id',
+      handlers.getReferido,
+      {
+        params: t.Object({
+          id: t.String({ format: 'uuid' }),
+        }),
+      }
+    )
     .post(
       '/api/referidos',
       handlers.create,
