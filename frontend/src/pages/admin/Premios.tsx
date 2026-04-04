@@ -1,122 +1,79 @@
-import { useState, useEffect } from 'react';
+import { useCallback } from 'react';
 import { premiosService } from '../../services/premios';
 import type { Premio } from '@fidelity-card/shared';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { Gift, Plus, Edit, Trash2, Search, Star, CheckCircle2, XCircle } from 'lucide-react';
+import { useAdminList } from '../../hooks/useAdminList';
+
+interface PremioFormData {
+  nombre: string;
+  descripcion: string;
+  puntos_requeridos: string;
+  activo: boolean;
+}
+
+const INITIAL_FORM: PremioFormData = {
+  nombre: '',
+  descripcion: '',
+  puntos_requeridos: '',
+  activo: true,
+};
 
 export default function AdminPremios() {
-  const [premios, setPremios] = useState<Premio[]>([]);
-  const [filteredPremios, setFilteredPremios] = useState<Premio[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingPremio, setEditingPremio] = useState<Premio | null>(null);
-  const [formData, setFormData] = useState({
-    nombre: '',
-    descripcion: '',
-    puntos_requeridos: '',
-    activo: true
-  });
-
-  useEffect(() => {
-    async function loadPremios() {
-      try {
-        const data = await premiosService.getAll();
-        setPremios(data);
-        setFilteredPremios(data);
-      } catch (error) {
-        console.error('Error al cargar premios:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadPremios();
-  }, []);
-
-  useEffect(() => {
-    const filtered = premios.filter(premio =>
-      premio.nombre.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredPremios(filtered);
-  }, [searchTerm, premios]);
-
-  function handleSearch(e: React.ChangeEvent<HTMLInputElement>) {
-    setSearchTerm(e.target.value);
-  }
-
-  function openModal(premio?: Premio) {
-    if (premio) {
-      setEditingPremio(premio);
-      setFormData({
-        nombre: premio.nombre,
-        descripcion: premio.descripcion || '',
-        puntos_requeridos: premio.puntos_requeridos.toString(),
-        activo: premio.activo
+  const {
+    items: premios,
+    loading,
+    searchTerm,
+    modalOpen,
+    editingItem: editingPremio,
+    formData,
+    handleSearch,
+    openModal,
+    closeModal,
+    handleSubmit,
+    handleDelete,
+    handleChange,
+    handleCheckboxChange,
+  } = useAdminList<Premio, PremioFormData>({
+    fetchFn: useCallback(() => premiosService.getAll(), []),
+    filterFn: useCallback(
+      (items: Premio[], search: string) =>
+        items.filter(p => p.nombre.toLowerCase().includes(search.toLowerCase())),
+      []
+    ),
+    createFn: useCallback(async (data: PremioFormData) => {
+      await premiosService.create({
+        nombre: data.nombre,
+        descripcion: data.descripcion,
+        puntos_requeridos: parseInt(data.puntos_requeridos),
+        activo: data.activo,
       });
-    } else {
-      setEditingPremio(null);
-      setFormData({
-        nombre: '',
-        descripcion: '',
-        puntos_requeridos: '',
-        activo: true
+    }, []),
+    updateFn: useCallback(async (id: string, data: PremioFormData) => {
+      await premiosService.update(id, {
+        nombre: data.nombre,
+        descripcion: data.descripcion,
+        puntos_requeridos: parseInt(data.puntos_requeridos),
+        activo: data.activo,
       });
-    }
-    setModalOpen(true);
-  }
-
-  function closeModal() {
-    setModalOpen(false);
-    setEditingPremio(null);
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    try {
-      const premioData = {
-        nombre: formData.nombre,
-        descripcion: formData.descripcion,
-        puntos_requeridos: parseInt(formData.puntos_requeridos),
-        activo: formData.activo
-      };
-
-      if (editingPremio) {
-        await premiosService.update(editingPremio.id, premioData);
-      } else {
-        await premiosService.create(premioData);
-      }
-
-      const data = await premiosService.getAll();
-      setPremios(data);
-      setFilteredPremios(data);
-      closeModal();
-    } catch (error) {
-      console.error('Error al guardar premio:', error);
-    }
-  }
-
-  async function handleDelete(id: string) {
-    if (!confirm('¿Estás segura de que deseas eliminar este premio?')) return;
-
-    try {
+    }, []),
+    deleteFn: useCallback(async (id: string) => {
       await premiosService.delete(id);
-      const data = await premiosService.getAll();
-      setPremios(data);
-      setFilteredPremios(data);
-    } catch (error) {
-      console.error('Error al eliminar premio:', error);
-    }
-  }
-
-  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
-    const { id, value, type } = e.target as HTMLInputElement;
-    setFormData({
-      ...formData,
-      [id]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
-    });
-  }
+    }, []),
+    initialFormData: INITIAL_FORM,
+    mapItemToForm: useCallback(
+      (p: Premio): PremioFormData => ({
+        nombre: p.nombre,
+        descripcion: p.descripcion || '',
+        puntos_requeridos: p.puntos_requeridos.toString(),
+        activo: p.activo,
+      }),
+      []
+    ),
+    itemName: 'premio',
+  });
 
   if (loading) {
     return (
@@ -163,11 +120,11 @@ export default function AdminPremios() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Gift size={24} className="text-primary" />
-              Premios ({filteredPremios.length})
+              Premios ({premios.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {filteredPremios.length === 0 ? (
+            {premios.length === 0 ? (
               <div className="text-center py-12">
                 <Gift size={48} className="mx-auto text-gray-400 mb-4" />
                 <p className="text-gray-500">
@@ -176,7 +133,7 @@ export default function AdminPremios() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredPremios.map((premio) => (
+                {premios.map((premio) => (
                   <div
                     key={premio.id}
                     className={`bg-white rounded-lg border p-4 hover:shadow-md transition-shadow ${
@@ -249,7 +206,7 @@ export default function AdminPremios() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={(e) => handleSubmit(e, (d) => d)} className="space-y-4">
                   <Input
                     id="nombre"
                     label="Nombre del Premio"
@@ -286,7 +243,7 @@ export default function AdminPremios() {
                       id="activo"
                       type="checkbox"
                       checked={formData.activo}
-                      onChange={handleChange}
+                      onChange={handleCheckboxChange}
                       className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
                     />
                     <label htmlFor="activo" className="text-sm font-medium text-gray-700">

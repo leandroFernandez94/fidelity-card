@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useCallback } from 'react';
 import { serviciosService } from '../../services/servicios';
 import type { Servicio } from '@fidelity-card/shared';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/Card';
@@ -6,149 +6,92 @@ import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { Gem, Plus, Edit, Trash2, Search, Clock, Star, Gift } from 'lucide-react';
 import { formatearPrecio } from '../../utils';
+import { useAdminList } from '../../hooks/useAdminList';
+
+interface ServicioFormData {
+  nombre: string;
+  descripcion: string;
+  precio: string;
+  duracion_min: string;
+  puntos_otorgados: string;
+  puntos_requeridos: string;
+}
+
+const INITIAL_FORM: ServicioFormData = {
+  nombre: '',
+  descripcion: '',
+  precio: '',
+  duracion_min: '',
+  puntos_otorgados: '',
+  puntos_requeridos: '',
+};
 
 export default function AdminServicios() {
-  const [servicios, setServicios] = useState<Servicio[]>([]);
-  const [filteredServicios, setFilteredServicios] = useState<Servicio[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [modalOpen, setModalOpen] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [modalError, setModalError] = useState<string | null>(null);
-  const [editingServicio, setEditingServicio] = useState<Servicio | null>(null);
-  const [formData, setFormData] = useState({
-    nombre: '',
-    descripcion: '',
-    precio: '',
-    duracion_min: '',
-    puntos_otorgados: '',
-    puntos_requeridos: ''
-  });
-
-  useEffect(() => {
-    async function loadServicios() {
-      try {
-        const data = await serviciosService.getAll();
-        setServicios(data);
-        setFilteredServicios(data);
-      } catch (error) {
-        console.error('Error al cargar servicios:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadServicios();
-  }, []);
-
-  useEffect(() => {
-    const filtered = servicios.filter(servicio =>
-      servicio.nombre.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredServicios(filtered);
-  }, [searchTerm, servicios]);
-
-  function handleSearch(e: React.ChangeEvent<HTMLInputElement>) {
-    setSearchTerm(e.target.value);
-  }
-
-  function openModal(servicio?: Servicio) {
-    if (servicio) {
-      setEditingServicio(servicio);
-      setFormData({
-        nombre: servicio.nombre,
-        descripcion: servicio.descripcion || '',
-        precio: servicio.precio.toString(),
-        duracion_min: servicio.duracion_min.toString(),
-        puntos_otorgados: servicio.puntos_otorgados.toString(),
-        puntos_requeridos: servicio.puntos_requeridos?.toString() || ''
+  const {
+    items: servicios,
+    loading,
+    searchTerm,
+    modalOpen,
+    submitting,
+    modalError,
+    editingItem: editingServicio,
+    formData,
+    handleSearch,
+    openModal,
+    closeModal,
+    handleSubmit,
+    handleDelete,
+    handleChange,
+  } = useAdminList<Servicio, ServicioFormData>({
+    fetchFn: useCallback(() => serviciosService.getAll(), []),
+    filterFn: useCallback(
+      (items: Servicio[], search: string) =>
+        items.filter(s => s.nombre.toLowerCase().includes(search.toLowerCase())),
+      []
+    ),
+    createFn: useCallback(async (data: ServicioFormData) => {
+      await serviciosService.create({
+        nombre: data.nombre.trim(),
+        descripcion: data.descripcion.trim() || null,
+        precio: Math.max(0, Math.round(Number(data.precio))),
+        duracion_min: Math.max(1, Math.round(Number(data.duracion_min))),
+        puntos_otorgados: Math.max(0, Math.round(Number(data.puntos_otorgados))),
+        puntos_requeridos:
+          data.puntos_requeridos && data.puntos_requeridos.trim()
+            ? Math.max(0, Math.round(Number(data.puntos_requeridos)))
+            : null,
+      } as Omit<Servicio, 'id' | 'created_at'>);
+    }, []),
+    updateFn: useCallback(async (id: string, data: ServicioFormData) => {
+      await serviciosService.update(id, {
+        nombre: data.nombre.trim(),
+        descripcion: data.descripcion.trim() || null,
+        precio: Math.max(0, Math.round(Number(data.precio))),
+        duracion_min: Math.max(1, Math.round(Number(data.duracion_min))),
+        puntos_otorgados: Math.max(0, Math.round(Number(data.puntos_otorgados))),
+        puntos_requeridos:
+          data.puntos_requeridos && data.puntos_requeridos.trim()
+            ? Math.max(0, Math.round(Number(data.puntos_requeridos)))
+            : null,
       });
-    } else {
-      setEditingServicio(null);
-      setFormData({
-        nombre: '',
-        descripcion: '',
-        precio: '',
-        duracion_min: '',
-        puntos_otorgados: '',
-        puntos_requeridos: ''
-      });
-    }
-    setModalOpen(true);
-  }
-
-  function closeModal() {
-    setModalOpen(false);
-    setSubmitting(false);
-    setModalError(null);
-    setEditingServicio(null);
-    setFormData({
-      nombre: '',
-      descripcion: '',
-      precio: '',
-      duracion_min: '',
-      puntos_otorgados: '',
-      puntos_requeridos: ''
-    });
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (submitting) return;
-
-    setSubmitting(true);
-    setModalError(null);
-
-    try {
-      const servicioData = {
-        nombre: formData.nombre.trim(),
-        descripcion: formData.descripcion.trim() || null,
-        precio: Math.max(0, Math.round(Number(formData.precio))),
-        duracion_min: Math.max(1, Math.round(Number(formData.duracion_min))),
-        puntos_otorgados: Math.max(0, Math.round(Number(formData.puntos_otorgados))),
-        puntos_requeridos: formData.puntos_requeridos && formData.puntos_requeridos.trim() 
-          ? Math.max(0, Math.round(Number(formData.puntos_requeridos))) 
-          : null
-      };
-
-      if (editingServicio) {
-        await serviciosService.update(editingServicio.id, servicioData);
-      } else {
-        await serviciosService.create(servicioData);
-      }
-
-      const data = await serviciosService.getAll();
-      setServicios(data);
-      setFilteredServicios(data);
-      closeModal();
-    } catch (error: any) {
-      console.error('Error al guardar servicio:', error);
-      const message = error.message || 'No se pudo guardar el servicio.';
-      setModalError(`Error: ${message}`);
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  async function handleDelete(id: string) {
-    if (!confirm('¿Estás segura de que deseas eliminar este servicio?')) return;
-
-    try {
+    }, []),
+    deleteFn: useCallback(async (id: string) => {
       await serviciosService.delete(id);
-      const data = await serviciosService.getAll();
-      setServicios(data);
-      setFilteredServicios(data);
-    } catch (error) {
-      console.error('Error al eliminar servicio:', error);
-    }
-  }
-
-  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
-    const { id, name, value } = e.target;
-    setFormData({
-      ...formData,
-      [id || name]: value
-    });
-  }
+    }, []),
+    initialFormData: INITIAL_FORM,
+    mapItemToForm: useCallback(
+      (s: Servicio): ServicioFormData => ({
+        nombre: s.nombre,
+        descripcion: s.descripcion || '',
+        precio: s.precio.toString(),
+        duracion_min: s.duracion_min.toString(),
+        puntos_otorgados: s.puntos_otorgados.toString(),
+        puntos_requeridos: s.puntos_requeridos?.toString() || '',
+      }),
+      []
+    ),
+    itemName: 'servicio',
+  });
 
   if (loading) {
     return (
@@ -195,11 +138,11 @@ export default function AdminServicios() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Gem size={24} className="text-primary" />
-              Servicios ({filteredServicios.length})
+              Servicios ({servicios.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {filteredServicios.length === 0 ? (
+            {servicios.length === 0 ? (
               <div className="text-center py-12">
                 <Gem size={48} className="mx-auto text-gray-400 mb-4" />
                 <p className="text-gray-500">
@@ -208,7 +151,7 @@ export default function AdminServicios() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredServicios.map((servicio) => (
+                {servicios.map((servicio) => (
                   <div
                     key={servicio.id}
                     className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
@@ -277,9 +220,9 @@ export default function AdminServicios() {
                     {editingServicio ? 'Editar Servicio' : 'Nuevo Servicio'}
                   </span>
                 </CardTitle>
-                <button 
+                <button
                   type="button"
-                  onClick={closeModal} 
+                  onClick={closeModal}
                   className="text-gray-400 hover:text-gray-600 transition-colors"
                   aria-label="Cerrar"
                 >
@@ -287,7 +230,7 @@ export default function AdminServicios() {
                 </button>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={(e) => handleSubmit(e, (d) => d)} className="space-y-4">
                   {modalError && (
                     <div id="modal-error" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                       {modalError}
@@ -357,16 +300,15 @@ export default function AdminServicios() {
                     name="puntos_requeridos"
                   />
 
-
-                    <div className="flex justify-end gap-3 pt-4">
-                      <Button type="button" variant="outline" onClick={closeModal} disabled={submitting}>
-                        Cancelar
-                      </Button>
-                      <Button type="submit" data-testid="btn-crear-servicio" loading={submitting}>
-                        {editingServicio ? 'Actualizar' : 'Crear'}
-                      </Button>
-                    </div>
-                  </form>
+                  <div className="flex justify-end gap-3 pt-4">
+                    <Button type="button" variant="outline" onClick={closeModal} disabled={submitting}>
+                      Cancelar
+                    </Button>
+                    <Button type="submit" data-testid="btn-crear-servicio" loading={submitting}>
+                      {editingServicio ? 'Actualizar' : 'Crear'}
+                    </Button>
+                  </div>
+                </form>
               </CardContent>
             </Card>
           </div>
