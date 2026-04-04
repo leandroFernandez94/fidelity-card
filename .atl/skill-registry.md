@@ -8,12 +8,8 @@ Auto-generated registry of available coding skills and conventions for AI agents
 
 Skills available globally across all projects.
 
-### go-testing
-- **Path**: `~/.config/opencode/skills/go-testing/SKILL.md`
-- **Trigger**: When writing Go tests, using teatest, or adding test coverage.
-- **Description**: Go testing patterns for Gentleman.Dots, including Bubbletea TUI testing.
-
 ### skill-creator
+
 - **Path**: `~/.config/opencode/skills/skill-creator/SKILL.md`
 - **Trigger**: When user asks to create a new skill, add agent instructions, or document patterns for AI.
 - **Description**: Creates new AI agent skills following the Agent Skills spec.
@@ -25,11 +21,13 @@ Skills available globally across all projects.
 Coding standards and rules specific to this project.
 
 ### AGENTS.md (project)
+
 - **Path**: `/Users/leandrofernandez/Documents/projects/fidelity-card/AGENTS.md`
 - **Type**: Project conventions index
 - **Content**: Complete guide for code agents — commands, style, testing, architecture, naming conventions
 
 ### AGENTS.md (global)
+
 - **Path**: `~/.config/opencode/AGENTS.md`
 - **Type**: Global agent rules
 - **Content**: Personality, tone, language rules, philosophy, expertise areas, behavior guidelines
@@ -39,6 +37,7 @@ Coding standards and rules specific to this project.
 ## Usage
 
 When launching sub-agents:
+
 1. **Identify relevant skills** based on the task context
 2. **Pass skill paths explicitly** in the sub-agent prompt: `SKILL: Load \`{path}\` before starting.`
 3. **Include project conventions** when making architectural or style decisions
