@@ -1,0 +1,58 @@
+# Read-only metadata validation for pull requests.
+# Enforces: conventional commit title, linked issue in body, branch naming.
+# GITHUB_TOKEN gets zero permissions because this workflow never writes.
+name: PR Validation
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+permissions: {}
+
+jobs:
+  validate:
+    name: Validate title, linked issue and branch name
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR metadata
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail;
+
+          title_regex='^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-z0-9._-]+\))?!?: .+';
+          body_regex='(closes|fixes|resolves) #[0-9]+';
+          branch_regex='^(feat|fix|chore|docs|style|refactor|perf|test|build|ci|revert)/[a-z0-9._-]+$';
+
+          failed=0;
+
+          if ! printf '%s\n' "$PR_TITLE" | grep -Eq "$title_regex"; then
+            echo "::error::PR title does not follow conventional commits. Expected 'type(scope)?: subject' with type in: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test. Got: '$PR_TITLE'";
+            failed=1;
+          fi
+
+          if ! printf '%s\n' "$PR_BODY" | grep -Eiq "$body_regex"; then
+            echo '::error::PR body must link an issue using Closes/Fixes/Resolves #<number> (case-insensitive). Example: Closes #123';
+            failed=1;
+          fi
+
+          case "$PR_BRANCH" in
+            renovate/*|dependabot/*)
+              echo "Automated branch '$PR_BRANCH' detected, skipping branch name check.";
+              ;;
+            *)
+              if ! printf '%s\n' "$PR_BRANCH" | grep -Eq "$branch_regex"; then
+                echo "::error::Branch name '$PR_BRANCH' must match '<type>/<kebab-case-name>' with type in: feat, fix, chore, docs, style, refactor, perf, test, build, ci, revert. Example: feat/admin-reports";
+                failed=1;
+              fi
+              ;;
+          esac
+
+          if [ "$failed" -ne 0 ]; then
+            echo 'PR validation failed.';
+            exit 1;
+          fi
+
+          echo 'PR validation passed.';
