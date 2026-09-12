@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createPremiosHttpHandlers } from '../premios.handlers';
+import { createPremiosHttpHandlers, type PremiosDeps } from '../premios.handlers';
 import type { AuthJwtPayload } from '../auth-context';
 
 type PremioRow = {
@@ -9,6 +9,8 @@ type PremioRow = {
   puntos_requeridos: number;
   activo: boolean;
 };
+
+type PremioInsertPayload = Omit<PremioRow, 'id'>;
 
 type StatusCall = { code: number; body?: unknown };
 
@@ -32,9 +34,9 @@ function makeDb(seed: PremioRow[]) {
   });
 
   const insert = () => ({
-    values: (payload: any) => ({
+    values: (payload: PremioInsertPayload) => ({
       returning: () => {
-        const row = {
+        const row: PremioRow = {
           id: 'new-id',
           ...payload,
           activo: payload.activo ?? true
@@ -45,13 +47,13 @@ function makeDb(seed: PremioRow[]) {
     })
   });
 
-  const update = (_table: any) => ({
-    set: (updates: any) => ({
-      where: (_predicate: any) => ({
+  const update = (_table: unknown) => ({
+    set: (updates: Partial<PremioRow>) => ({
+      where: (_predicate: unknown) => ({
         returning: () => {
           const idx = data.findIndex(r => r.id === 'p1');
           if (idx === -1) return [];
-          const next = { ...data[idx], ...updates };
+          const next: PremioRow = { ...data[idx], ...updates };
           data[idx] = next;
           return [next];
         }
@@ -59,9 +61,9 @@ function makeDb(seed: PremioRow[]) {
     })
   });
 
-  const del = (_table: any) => ({
-    where: (_predicate: any) => ({
-      returning: (_options?: any) => {
+  const del = (_table: unknown) => ({
+    where: (_predicate: unknown) => ({
+      returning: (_options?: unknown) => {
         const idx = data.findIndex(r => r.id === 'p1');
         if (idx === -1) return [];
         const deleted = data.splice(idx, 1);
@@ -79,13 +81,18 @@ function makeDb(seed: PremioRow[]) {
   };
 }
 
+/** Adaptador de prueba: el mock implementa solo la fraccion de la API de Drizzle que usan los handlers. */
+function asDb(mock: ReturnType<typeof makeDb>): PremiosDeps['db'] {
+  return mock as unknown as PremiosDeps['db'];
+}
+
 describe('createPremiosHttpHandlers', () => {
   it('lists all awards', async () => {
     const db = makeDb([
       { id: '1', nombre: 'B', descripcion: '', puntos_requeridos: 10, activo: true },
       { id: '2', nombre: 'A', descripcion: '', puntos_requeridos: 20, activo: true }
     ]);
-    const handlers = createPremiosHttpHandlers({ db: db as any });
+    const handlers = createPremiosHttpHandlers({ db: asDb(db) });
     const result = await handlers.listPremios();
     expect(result).toHaveLength(2);
     expect(result[0].nombre).toBe('A');
@@ -94,7 +101,7 @@ describe('createPremiosHttpHandlers', () => {
   it('denies creation for non-admin', async () => {
     const db = makeDb([]);
     const { status } = makeStatus();
-    const handlers = createPremiosHttpHandlers({ db: db as any });
+    const handlers = createPremiosHttpHandlers({ db: asDb(db) });
     const auth = { sub: 'u1', rol: 'clienta' } as AuthJwtPayload;
     const set = { status: 0 };
 
@@ -111,11 +118,11 @@ describe('createPremiosHttpHandlers', () => {
   it('allows admin to create award', async () => {
     const db = makeDb([]);
     const { status } = makeStatus();
-    const handlers = createPremiosHttpHandlers({ db: db as any });
+    const handlers = createPremiosHttpHandlers({ db: asDb(db) });
     const auth = { sub: 'a1', rol: 'admin' } as AuthJwtPayload;
     const set = { status: 0 };
 
-    const result: any = await handlers.createPremio({
+    const result = await handlers.createPremio({
       auth,
       status,
       body: { nombre: 'Premio Nuevo', descripcion: 'Desc', puntos_requeridos: 50 },
@@ -123,18 +130,18 @@ describe('createPremiosHttpHandlers', () => {
     });
 
     expect(set.status).toBe(201);
-    expect(result.nombre).toBe('Premio Nuevo');
+    expect(result).toMatchObject({ nombre: 'Premio Nuevo' });
     expect(db._data).toHaveLength(1);
   });
 
   it('allows admin to patch award', async () => {
     const db = makeDb([{ id: 'p1', nombre: 'Old', descripcion: '', puntos_requeridos: 10, activo: true }]);
     const { status } = makeStatus();
-    const handlers = createPremiosHttpHandlers({ db: db as any });
+    const handlers = createPremiosHttpHandlers({ db: asDb(db) });
     const auth = { sub: 'a1', rol: 'admin' } as AuthJwtPayload;
     const set = { status: 0 };
 
-    const result: any = await handlers.patchPremio({
+    const result = await handlers.patchPremio({
       auth,
       status,
       params: { id: 'p1' },
@@ -142,26 +149,25 @@ describe('createPremiosHttpHandlers', () => {
       set
     });
 
-    expect(result.nombre).toBe('Updated');
-    expect(result.activo).toBe(false);
+    expect(result).toMatchObject({ nombre: 'Updated', activo: false });
     expect(db._data[0].nombre).toBe('Updated');
   });
 
   it('allows admin to delete award', async () => {
     const db = makeDb([{ id: 'p1', nombre: 'To delete', descripcion: '', puntos_requeridos: 10, activo: true }]);
     const { status } = makeStatus();
-    const handlers = createPremiosHttpHandlers({ db: db as any });
+    const handlers = createPremiosHttpHandlers({ db: asDb(db) });
     const auth = { sub: 'a1', rol: 'admin' } as AuthJwtPayload;
     const set = { status: 0 };
 
-    const result: any = await handlers.deletePremio({
+    const result = await handlers.deletePremio({
       auth,
       status,
       params: { id: 'p1' },
       set
     });
 
-    expect(result.ok).toBe(true);
+    expect(result).toMatchObject({ ok: true });
     expect(db._data).toHaveLength(0);
   });
 });
