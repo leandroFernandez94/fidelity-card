@@ -178,9 +178,9 @@ export function createCitasHttpHandlers(deps: CitasDeps) {
 
       try {
         validateCitaItems(body.items, masters);
-      } catch (e: any) {
+      } catch (e) {
         set.status = 400;
-        return { error: e.message };
+        return { error: e instanceof Error ? e.message : String(e) };
       }
 
       const { puntos_ganados, puntos_utilizados } = computeCitaTotals(body.items, masters);
@@ -293,9 +293,9 @@ export function createCitasHttpHandlers(deps: CitasDeps) {
 
       try {
         validateCitaItems(body.items, masters);
-      } catch (e: any) {
+      } catch (e) {
         set.status = 400;
-        return { error: e.message };
+        return { error: e instanceof Error ? e.message : String(e) };
       }
 
       const { puntos_ganados, puntos_utilizados } = computeCitaTotals(body.items, masters);
@@ -424,7 +424,7 @@ export function createCitasHttpHandlers(deps: CitasDeps) {
           const atomicTx: CitasPatchAtomicTx = {
             updateCita: async (id, updates) => {
               const updated = await tx.update(citas).set(updates).where(eq(citas.id, id)).returning();
-              return (updated[0] as any) ?? null;
+              return updated[0] ?? null;
             },
             updateCitaIfEstadoIn: async (id, allowedEstados, updates) => {
               const updated = await tx
@@ -432,7 +432,7 @@ export function createCitasHttpHandlers(deps: CitasDeps) {
                 .set(updates)
                 .where(and(eq(citas.id, id), inArray(citas.estado, [...allowedEstados])))
                 .returning();
-              return (updated[0] as any) ?? null;
+              return updated[0] ?? null;
             },
             incrementProfilePoints: async (profileId, delta) => {
               await tx
@@ -467,9 +467,9 @@ export function createCitasHttpHandlers(deps: CitasDeps) {
           return { error: 'conflict' };
         }
 
-        return toPublicCita(patched as any);
-      } catch (e: any) {
-        if (e.message === 'insufficient_points') {
+        return toPublicCita(patched);
+      } catch (e) {
+        if (e instanceof Error && e.message === 'insufficient_points') {
           set.status = 409;
           return { error: 'insufficient_points' };
         }

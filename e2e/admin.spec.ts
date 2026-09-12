@@ -3,10 +3,9 @@ import { test, expect } from '@playwright/test';
 const baseURL = 'http://localhost:5173';
 
 test.describe('Flujos de Administrador', () => {
-  const testEmail = `admin-test-${Date.now()}@example.com`;
   const servicioNombre = `Servicio Test ${Date.now()}`;
 
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(() => {
     // 1. Registro de un usuario administrador (si el backend lo permite así de fácil)
     // O mejor, asumimos que podemos crear uno o loguearnos con uno existente si hubiera seed data.
     // Como no tengo seed data claro, voy a registrar un usuario y luego intentar "ascenderlo"
