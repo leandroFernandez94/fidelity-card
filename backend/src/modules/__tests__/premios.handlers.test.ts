@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { premios } from '../../db/schema';
 import { createPremiosHttpHandlers } from '../premios.handlers';
 import type { AuthJwtPayload } from '../auth-context';
 
@@ -46,9 +45,9 @@ function makeDb(seed: PremioRow[]) {
     })
   });
 
-  const update = (table: any) => ({
+  const update = (_table: any) => ({
     set: (updates: any) => ({
-      where: (predicate: any) => ({
+      where: (_predicate: any) => ({
         returning: () => {
           const idx = data.findIndex(r => r.id === 'p1');
           if (idx === -1) return [];
@@ -60,9 +59,9 @@ function makeDb(seed: PremioRow[]) {
     })
   });
 
-  const del = (table: any) => ({
-    where: (predicate: any) => ({
-      returning: (options?: any) => {
+  const del = (_table: any) => ({
+    where: (_predicate: any) => ({
+      returning: (_options?: any) => {
         const idx = data.findIndex(r => r.id === 'p1');
         if (idx === -1) return [];
         const deleted = data.splice(idx, 1);

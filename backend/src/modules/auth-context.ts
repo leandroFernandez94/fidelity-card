@@ -1,4 +1,5 @@
 import { Elysia } from 'elysia';
+import { jwt } from '@elysiajs/jwt';
 import type { Rol } from '@fidelity-card/shared';
 
 export type { Rol };

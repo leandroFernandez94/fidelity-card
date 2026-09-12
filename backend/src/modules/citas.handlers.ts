@@ -12,6 +12,7 @@ import type { CitaEstado } from '../domain/types/citas';
 import type { StatusHelper } from '../domain/types/http';
 
 import { extractJwt } from './auth-helpers';
+import { requireAdmin, requireAuth, type AuthJwtPayload } from './auth-context';
 
 export type CitaCreateBody = {
   clienta_id: string;
