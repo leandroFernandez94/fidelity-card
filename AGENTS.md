@@ -12,6 +12,7 @@ Guia para agentes de codigo en este repositorio. Resume comandos, estilo y regla
 - Preview build: `bun --cwd frontend run preview`
 - Lint: `bun run lint`
 - DB migraciones: `bun run db:generate` y `bun run db:migrate`
+- Reset DB (trunca todas las tablas): `bun run db:reset`
 - Seed datos: `bun run seed:all` (o scripts individuales)
 
 ## Tests
