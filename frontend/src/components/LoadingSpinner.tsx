@@ -1,4 +1,4 @@
-type SpinnerSize = 'sm' | 'md';
+type SpinnerSize = 'sm' | 'md' | 'lg';
 
 interface LoadingSpinnerProps {
   size?: SpinnerSize;
@@ -9,7 +9,9 @@ interface LoadingSpinnerProps {
 export default function LoadingSpinner({ size = 'md', fullScreen = false, className }: LoadingSpinnerProps) {
   const sizeClasses = size === 'sm'
     ? 'w-6 h-6 border-2'
-    : 'w-8 h-8 border-4';
+    : size === 'lg'
+      ? 'w-12 h-12 border-4'
+      : 'w-8 h-8 border-4';
 
   const spinner = (
     <div className={`${sizeClasses} border-primary border-t-transparent rounded-full animate-spin`} />

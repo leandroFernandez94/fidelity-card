@@ -10,7 +10,7 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size={48} />
+        <LoadingSpinner size="lg" />
       </div>
     );
   }
