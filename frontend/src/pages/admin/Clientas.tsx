@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '../../components/Card'
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { Search, Eye, User, Mail, Phone, Gift, Users } from 'lucide-react';
-import { formatearFecha } from '../../utils';
+import { formatearFecha, normalizarTexto } from '../../utils';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import PageShell from '../../components/PageShell';
 
@@ -33,9 +33,12 @@ export default function AdminClientas() {
   }, []);
 
   useEffect(() => {
-    const filtered = clientas.filter(clienta =>
-      `${clienta.nombre} ${clienta.apellido} ${clienta.email}`.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const term = normalizarTexto(searchTerm);
+    const filtered = term
+      ? clientas.filter(clienta =>
+          normalizarTexto(`${clienta.nombre} ${clienta.apellido} ${clienta.email}`).includes(term)
+        )
+      : clientas;
     setFilteredClientas(filtered);
   }, [searchTerm, clientas]);
 

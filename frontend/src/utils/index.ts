@@ -34,6 +34,15 @@ export function esFechaPasada(fecha: string | Date): boolean {
   return date < new Date();
 }
 
+// Quita tildes y normaliza para busquedas accent-insensitive ("martinez" matchea "Martínez")
+export function normalizarTexto(texto: string): string {
+  return texto
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
 export function getEstadoCitaColor(estado: string): string {
   switch (estado) {
     case 'pendiente':
