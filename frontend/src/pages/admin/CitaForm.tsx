@@ -4,7 +4,7 @@ import { profilesService } from '../../services/profiles';
 import { serviciosService } from '../../services/servicios';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
-import { Select } from '../../components/Select';
+import ClientaSelect from '../../components/ClientaSelect';
 import type { Cita, Profile, Servicio } from '@fidelity-card/shared';
 
 export type CitaFormData = {
@@ -51,6 +51,7 @@ export default function CitaForm({ initialData, initialItems, onSubmit, submitti
       : new Map()
   );
   const [notas, setNotas] = useState(initialData?.notas ?? '');
+  const [formError, setFormError] = useState<string | null>(null);
 
   const isEditMode = !!initialData;
 
@@ -129,6 +130,12 @@ export default function CitaForm({ initialData, initialItems, onSubmit, submitti
     e.preventDefault();
     if (submitting) return;
 
+    if (!clientaId) {
+      setFormError('Selecciona una clienta para continuar.');
+      return;
+    }
+    setFormError(null);
+
     await onSubmit({
       clienta_id: clientaId,
       fecha_hora: new Date(fechaHora).toISOString(),
@@ -160,16 +167,13 @@ export default function CitaForm({ initialData, initialItems, onSubmit, submitti
         </div>
       )}
 
-      <Select
+      <ClientaSelect
         id="clienta_id"
         label="Clienta"
-        options={clientas.map((c) => ({
-          value: c.id,
-          label: `${c.nombre} ${c.apellido}`
-        }))}
+        clientas={clientas}
         value={clientaId}
-        onChange={(e) => setClientaId(e.target.value)}
-        required
+        onChange={setClientaId}
+        error={formError}
       />
 
       <Input

@@ -55,7 +55,8 @@ test.describe('Puntos y Canje de Servicios', () => {
     await page.getByRole('button', { name: 'Nueva Cita' }).click();
     
     // Seleccionar clienta (asumimos que existe una o usamos la primera)
-    await page.getByLabel('Clienta').selectOption({ index: 1 });
+    await page.getByLabel('Clienta').click();
+    await page.getByRole('option').first().click();
     
     // Esperar a que los puntos se carguen
     await page.waitForTimeout(1000);
@@ -88,7 +89,8 @@ test.describe('Puntos y Canje de Servicios', () => {
 
     // Ahora crear la segunda cita usando esos puntos
     await page.getByRole('button', { name: 'Nueva Cita' }).click();
-    await page.getByLabel('Clienta').selectOption({ index: 1 });
+    await page.getByLabel('Clienta').click();
+    await page.getByRole('option').first().click();
     // Esperar a que los puntos se carguen y el botón de canje se habilite
     await page.waitForTimeout(3000);
     
@@ -160,7 +162,8 @@ test.describe('Puntos y Canje de Servicios', () => {
     await page.reload(); // Recargar para ver el nuevo servicio
     await page.getByRole('button', { name: 'Nueva Cita' }).click();
     // Seleccionar clienta (usamos la que ya tiene puntos de la prueba anterior)
-    await page.getByLabel('Clienta').selectOption({ index: 1 });
+    await page.getByLabel('Clienta').click();
+    await page.getByRole('option').first().click();
     
     // Esperar a que los puntos se carguen (pueden venir de un efecto secundario)
     await page.waitForTimeout(2000);
