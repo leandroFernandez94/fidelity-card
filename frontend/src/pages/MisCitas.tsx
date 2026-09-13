@@ -183,84 +183,107 @@ export default function MisCitas() {
             ) : (
               <div className="space-y-4">
                 {proximasCitas.map((cita) => (
-                  <Card key={cita.id}>
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-3">
-                             <span className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${getEstadoCitaColor(cita.estado)}`}>
-                                {cita.estado}
-                              </span>
-                            {getEstadoIcon(cita.estado)}
-                          </div>
-                          
-                          <div className="flex items-center gap-6 text-gray-600 mb-2">
-                            <div className="flex items-center gap-2">
-                              <Calendar size={18} />
-                              <span className="font-medium">
-                                {formatearFecha(cita.fecha_hora)}
+                  <div
+                    key={cita.id}
+                    data-testid={`card-cita-${cita.id}`}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => navigate(`/cita/${cita.id}`)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        navigate(`/cita/${cita.id}`);
+                      }
+                    }}
+                    className="cursor-pointer text-left rounded-lg"
+                  >
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-3">
+                               <span className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${getEstadoCitaColor(cita.estado)}`}>
+                                  {cita.estado}
+                                </span>
+                              {getEstadoIcon(cita.estado)}
+                            </div>
+                            
+                            <div className="flex items-center gap-6 text-gray-600 mb-2">
+                              <div className="flex items-center gap-2">
+                                <Calendar size={18} />
+                                <span className="font-medium">
+                                  {formatearFecha(cita.fecha_hora)}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Clock size={18} />
+                                <span className="font-medium">
+                                  {formatearHora(cita.fecha_hora)}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 text-sm text-gray-500">
+                              <span>Servicios:</span>
+                              <span className="font-medium text-gray-900">
+                                {cita.servicio_ids.length} servicio{cita.servicio_ids.length > 1 ? 's' : ''}
                               </span>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Clock size={18} />
-                              <span className="font-medium">
-                                {formatearHora(cita.fecha_hora)}
-                              </span>
-                            </div>
+
+                            {cita.notas && (
+                              <p className="mt-3 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                                {cita.notas}
+                              </p>
+                            )}
+
+                            {cita.estado === 'pendiente' && (
+                              <div className="mt-4 flex flex-wrap gap-2">
+                                <button
+                                  type="button"
+                                  disabled={updatingId === cita.id}
+                                  data-testid={`btn-confirmar-${cita.id}`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    actualizarEstado(cita.id, 'confirmada');
+                                  }}
+                                  className="inline-flex items-center justify-center rounded-lg bg-secondary text-white px-4 py-2 text-sm font-medium hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                                >
+                                  <CheckCircle size={16} className="mr-2" />
+                                  Confirmar
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={updatingId === cita.id}
+                                  data-testid={`btn-cancelar-${cita.id}`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    actualizarEstado(cita.id, 'cancelada');
+                                  }}
+                                  className="inline-flex items-center justify-center rounded-lg bg-red-600 text-white px-4 py-2 text-sm font-medium hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    <XCircle size={16} className="mr-2" />
+                                    Cancelar
+                                  </button>
+                              </div>
+                            )}
                           </div>
 
-                          <div className="flex items-center gap-2 text-sm text-gray-500">
-                            <span>Servicios:</span>
-                            <span className="font-medium text-gray-900">
-                              {cita.servicio_ids.length} servicio{cita.servicio_ids.length > 1 ? 's' : ''}
-                            </span>
-                          </div>
-
-                          {cita.notas && (
-                            <p className="mt-3 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-                              {cita.notas}
-                            </p>
-                          )}
-
-                          {cita.estado === 'pendiente' && (
-                            <div className="mt-4 flex flex-wrap gap-2">
-                              <button
-                                type="button"
-                                disabled={updatingId === cita.id}
-                                onClick={() => actualizarEstado(cita.id, 'confirmada')}
-                                className="inline-flex items-center justify-center rounded-lg bg-secondary text-white px-4 py-2 text-sm font-medium hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-                              >
-                                <CheckCircle size={16} className="mr-2" />
-                                Confirmar
-                              </button>
-                              <button
-                                type="button"
-                                disabled={updatingId === cita.id}
-                                onClick={() => actualizarEstado(cita.id, 'cancelada')}
-                                className="inline-flex items-center justify-center rounded-lg bg-red-600 text-white px-4 py-2 text-sm font-medium hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-                              >
-                                <XCircle size={16} className="mr-2" />
-                                Cancelar
-                              </button>
+                          <div className="text-right">
+                            <div className="text-2xl font-bold text-primary">
+                              +{cita.puntos_ganados}
                             </div>
-                          )}
+                            <div className="text-xs text-gray-500">puntos ganados</div>
+                            {cita.puntos_utilizados > 0 && (
+                              <div className="mt-2 text-xl font-bold text-red-500">
+                                -{cita.puntos_utilizados}
+                                <div className="text-[10px] text-gray-500 uppercase tracking-tight font-normal">canjeados</div>
+                              </div>
+                            )}
+                          </div>
                         </div>
-
-                        <div className="text-right">
-                          <div className="text-2xl font-bold text-primary">
-                            +{cita.puntos_ganados}
-                          </div>
-                          <div className="text-xs text-gray-500">puntos ganados</div>
-                          {cita.puntos_utilizados > 0 && (
-                            <div className="mt-2 text-xl font-bold text-red-500">
-                              -{cita.puntos_utilizados}
-                              <div className="text-[10px] text-gray-500 uppercase tracking-tight font-normal">canjeados</div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
+                  </div>
                 ))}
               </div>
             )}
@@ -288,7 +311,17 @@ export default function MisCitas() {
                 {citasPasadas.map((cita) => (
                   <div
                     key={cita.id}
-                    className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex items-center justify-between"
+                    data-testid={`card-cita-${cita.id}`}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => navigate(`/cita/${cita.id}`)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        navigate(`/cita/${cita.id}`);
+                      }
+                    }}
+                    className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex items-center justify-between cursor-pointer hover:shadow-md transition-shadow"
                   >
                     <div>
                       <div className="font-medium text-gray-900">
