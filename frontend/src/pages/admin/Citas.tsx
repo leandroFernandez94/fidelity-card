@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { citasService } from '../../services/citas';
 import { profilesService } from '../../services/profiles';
 import type { Cita, Profile } from '@fidelity-card/shared';
@@ -17,6 +17,7 @@ import ErrorBanner from '../../components/ErrorBanner';
 type CitaEstado = Cita['estado'];
 
 export default function AdminCitas() {
+  const navigate = useNavigate();
   const [citas, setCitas] = useState<Cita[]>([]);
   const [clientas, setClientas] = useState<Profile[]>([]);
   const [filteredCitas, setFilteredCitas] = useState<Cita[]>([]);
@@ -181,106 +182,128 @@ export default function AdminCitas() {
                 {proximasCitas.map((cita) => {
                   const clienta = getClientaById(cita.clienta_id);
                   return (
-                    <Card key={cita.id}>
-                      <CardContent className="p-6">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-3">
-                              <span className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${getEstadoCitaColor(cita.estado)}`}>
-                                {cita.estado}
-                              </span>
-                            </div>
-
-                            <div className="flex items-center gap-6 text-gray-600 mb-2">
-                              <div className="flex items-center gap-2">
-                                <Calendar size={18} />
-                                <span className="font-medium">
-                                  {formatearFecha(cita.fecha_hora)}
+                    <div
+                      key={cita.id}
+                      data-testid={`card-cita-${cita.id}`}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => navigate(`/admin/citas/${cita.id}`)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          navigate(`/admin/citas/${cita.id}`);
+                        }
+                      }}
+                      className="cursor-pointer text-left rounded-lg"
+                    >
+                      <Card>
+                        <CardContent className="p-6">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-3">
+                                <span className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${getEstadoCitaColor(cita.estado)}`}>
+                                  {cita.estado}
                                 </span>
                               </div>
-                              <div className="flex items-center gap-2">
-                                <Clock size={18} />
-                                <span className="font-medium">
-                                  {formatearHora(cita.fecha_hora)}
+
+                              <div className="flex items-center gap-6 text-gray-600 mb-2">
+                                <div className="flex items-center gap-2">
+                                  <Calendar size={18} />
+                                  <span className="font-medium">
+                                    {formatearFecha(cita.fecha_hora)}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Clock size={18} />
+                                  <span className="font-medium">
+                                    {formatearHora(cita.fecha_hora)}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <User size={16} />
+                                <span className="font-medium text-gray-900">
+                                  {clienta ? `${clienta.nombre} ${clienta.apellido}` : 'Clienta no encontrada'}
                                 </span>
                               </div>
-                            </div>
 
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                              <User size={16} />
-                              <span className="font-medium text-gray-900">
-                                {clienta ? `${clienta.nombre} ${clienta.apellido}` : 'Clienta no encontrada'}
-                              </span>
-                            </div>
-
-                            <div className="text-sm text-gray-500 mt-2">
-                              <span data-testid="cita-servicios-count">
-                                {cita.servicio_ids.length} servicio{cita.servicio_ids.length !== 1 ? 's' : ''}
-                              </span>
-                              {cita.puntos_utilizados > 0 && (
-                                <span className="ml-2 px-2 py-0.5 bg-red-50 text-red-600 rounded-full text-xs font-bold">
-                                  -{cita.puntos_utilizados} pts canjeados
+                              <div className="text-sm text-gray-500 mt-2">
+                                <span data-testid="cita-servicios-count">
+                                  {cita.servicio_ids.length} servicio{cita.servicio_ids.length !== 1 ? 's' : ''}
                                 </span>
+                                {cita.puntos_utilizados > 0 && (
+                                  <span className="ml-2 px-2 py-0.5 bg-red-50 text-red-600 rounded-full text-xs font-bold">
+                                    -{cita.puntos_utilizados} pts canjeados
+                                  </span>
+                                )}
+                                {cita.puntos_ganados > 0 && (
+                                  <span className="ml-2 px-2 py-0.5 bg-primary/10 text-primary rounded-full text-xs font-bold">
+                                    +{cita.puntos_ganados} pts otorgados
+                                  </span>
+                                )}
+                              </div>
+
+                              {cita.notas && (
+                                <p className="mt-3 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                                  {cita.notas}
+                                </p>
                               )}
-                              {cita.puntos_ganados > 0 && (
-                                <span className="ml-2 px-2 py-0.5 bg-primary/10 text-primary rounded-full text-xs font-bold">
-                                  +{cita.puntos_ganados} pts otorgados
-                                </span>
-                              )}
                             </div>
 
-                            {cita.notas && (
-                              <p className="mt-3 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-                                {cita.notas}
-                              </p>
-                            )}
-                          </div>
+                            <div className="flex flex-col gap-2 shrink-0">
+                              {cita.estado === 'pendiente' && (
+                                <div className="flex items-center gap-2 text-xs text-gray-600">
+                                  <AlertCircle size={14} className="text-yellow-600" />
+                                  Esperando confirmación
+                                </div>
+                              )}
 
-                          <div className="flex flex-col gap-2 shrink-0">
-                            {cita.estado === 'pendiente' && (
-                              <div className="flex items-center gap-2 text-xs text-gray-600">
-                                <AlertCircle size={14} className="text-yellow-600" />
-                                Esperando confirmación
-                              </div>
-                            )}
-
-                            <Link
-                              to={`/admin/citas/${cita.id}/editar`}
-                              className="inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 border-2 border-primary text-primary hover:bg-primary hover:text-white px-3 py-1.5 text-sm"
-                            >
-                              <Pencil size={16} className="mr-2" />
-                              Editar
-                            </Link>
-
-                            {(cita.estado === 'pendiente' || cita.estado === 'confirmada') && (
-                              <Button
-                                size="sm"
-                                variant="secondary"
-                                data-testid={`btn-completar-${cita.id}`}
-                                onClick={() => actualizarEstado(cita.id, 'completada')}
-                                disabled={updatingId === cita.id}
+                              <Link
+                                to={`/admin/citas/${cita.id}/editar`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 border-2 border-primary text-primary hover:bg-primary hover:text-white px-3 py-1.5 text-sm"
                               >
-                                <CheckCircle size={16} className="mr-2" />
-                                Completar
-                              </Button>
-                            )}
+                                  <Pencil size={16} className="mr-2" />
+                                  Editar
+                                </Link>
 
-                            {(cita.estado === 'pendiente' || cita.estado === 'confirmada') && (
-                              <Button
-                                size="sm"
-                                variant="danger"
-                                data-testid={`btn-cancelar-${cita.id}`}
-                                onClick={() => actualizarEstado(cita.id, 'cancelada')}
-                                disabled={updatingId === cita.id}
-                              >
-                                <XCircle size={16} className="mr-2" />
-                                Cancelar
-                              </Button>
-                            )}
+                              {(cita.estado === 'pendiente' || cita.estado === 'confirmada') && (
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  data-testid={`btn-completar-${cita.id}`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    actualizarEstado(cita.id, 'completada');
+                                  }}
+                                  disabled={updatingId === cita.id}
+                                >
+                                  <CheckCircle size={16} className="mr-2" />
+                                  Completar
+                                </Button>
+                              )}
+
+                              {(cita.estado === 'pendiente' || cita.estado === 'confirmada') && (
+                                <Button
+                                  size="sm"
+                                  variant="danger"
+                                  data-testid={`btn-cancelar-${cita.id}`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    actualizarEstado(cita.id, 'cancelada');
+                                  }}
+                                  disabled={updatingId === cita.id}
+                                >
+                                  <XCircle size={16} className="mr-2" />
+                                  Cancelar
+                                </Button>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                        </CardContent>
+                      </Card>
+                    </div>
                   );
                 })}
               </div>
@@ -302,7 +325,17 @@ export default function AdminCitas() {
                       return (
                         <div
                           key={cita.id}
-                          className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                          data-testid={`card-cita-${cita.id}`}
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => navigate(`/admin/citas/${cita.id}`)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              navigate(`/admin/citas/${cita.id}`);
+                            }
+                          }}
+                          className="flex items-center justify-between p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
                         >
                           <div>
                             <div className="font-medium text-gray-900">
