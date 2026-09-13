@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Fuentes explicitas: la deteccion automatica de Tailwind v4 depende del raiz
+   de git, que no existe dentro del build de Docker (ver docker-compose.staging). */
+@source "./";
+@source "../index.html";
+
 @theme {
   --color-primary: #223FA0;
   --color-primary-light: #3b5cbd;
