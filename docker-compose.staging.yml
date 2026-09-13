@@ -1,0 +1,70 @@
+# Ambiente de staging auto-hospedado del fidelity-card.
+# Levanta DB + backend + frontend aislados del ambiente de dev.
+# Uso:
+#   docker compose --env-file .env.staging -f docker-compose.staging.yml up -d --build
+# El frontend queda expuesto en el puerto 3002 del host para conectarlo al proxy
+# inverso que uses (apunta el dominio a http://<ip-del-host>:3002). El patron es
+# single-origin: /api se proxéa internamente del nginx del frontend al backend.
+name: fidelity-staging
+
+services:
+  db:
+    image: postgres:16
+    container_name: fidelity-staging-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${STAGING_POSTGRES_DB:-fidelity_staging}
+      POSTGRES_USER: ${STAGING_POSTGRES_USER:-fidelity}
+      POSTGRES_PASSWORD: ${STAGING_POSTGRES_PASSWORD:?definir en .env.staging}
+    ports:
+      # Solo acceso local para inspeccionar con psql/pgAdmin
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - fidelity_staging_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    networks:
+      - fidelity-staging
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: fidelity-backend:staging
+    container_name: fidelity-staging-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      DATABASE_URL: postgres://${STAGING_POSTGRES_USER:-fidelity}:${STAGING_POSTGRES_PASSWORD:?definir en .env.staging}@db:5432/${STAGING_POSTGRES_DB:-fidelity_staging}
+      JWT_SECRET: ${JWT_SECRET:?definir en .env.staging}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - fidelity-staging
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    image: fidelity-frontend:staging
+    container_name: fidelity-staging-web
+    restart: unless-stopped
+    environment:
+      API_UPSTREAM: http://backend:3001
+    ports:
+      - "3002:80"
+    depends_on:
+      - backend
+    networks:
+      - fidelity-staging
+
+volumes:
+  fidelity_staging_pgdata:
+
+networks:
+  fidelity-staging:

@@ -17,6 +17,7 @@ dist-ssr
 
 # Secrets
 .env
+.env.staging
 
 # Playwright
 playwright-report
