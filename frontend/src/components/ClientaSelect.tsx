@@ -26,6 +26,15 @@ function nombreCompleto(clienta: Profile) {
   return `${clienta.nombre} ${clienta.apellido}`;
 }
 
+// Quita tildes y normaliza para que "martinez" matchee "Martínez"
+function normalizarTexto(texto: string) {
+  return texto
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
 interface ClientaSelectProps {
   clientas: Profile[];
   value: string;
@@ -60,10 +69,10 @@ export default function ClientaSelect({
   );
 
   const filteredClientas = useMemo(() => {
-    const term = appliedQuery.trim().toLowerCase();
+    const term = normalizarTexto(appliedQuery);
     if (!term) return clientas;
     return clientas.filter((clienta) =>
-      nombreCompleto(clienta).toLowerCase().includes(term)
+      normalizarTexto(nombreCompleto(clienta)).includes(term)
     );
   }, [clientas, appliedQuery]);
 
