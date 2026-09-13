@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Profile } from '@fidelity-card/shared';
 import { Search, User, X, ChevronDown } from 'lucide-react';
 import { Button } from './Button';
-import { cn } from '../utils';
+import { cn, normalizarTexto } from '../utils';
 
 const DESKTOP_MEDIA_QUERY = '(min-width: 768px)';
 const DEBOUNCE_MS = 300;
@@ -24,15 +24,6 @@ function useIsDesktop() {
 
 function nombreCompleto(clienta: Profile) {
   return `${clienta.nombre} ${clienta.apellido}`;
-}
-
-// Quita tildes y normaliza para que "martinez" matchee "Martínez"
-function normalizarTexto(texto: string) {
-  return texto
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim();
 }
 
 interface ClientaSelectProps {
