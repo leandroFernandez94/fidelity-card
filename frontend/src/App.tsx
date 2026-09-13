@@ -12,6 +12,7 @@ import Referidos from './pages/Referidos';
 import Premios from './pages/Premios';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminClientas from './pages/admin/Clientas';
+import ClientaDetalle from './pages/admin/ClientaDetalle';
 import AdminCitas from './pages/admin/Citas';
 import AdminNuevaCita from './pages/admin/NuevaCita';
 import AdminEditarCita from './pages/admin/EditarCita';
@@ -100,6 +101,16 @@ function App() {
               <RequireAdmin>
                 <LayoutWithNav>
                   <AdminClientas />
+                </LayoutWithNav>
+              </RequireAdmin>
+            }
+          />
+          <Route
+            path="/admin/clientas/:id"
+            element={
+              <RequireAdmin>
+                <LayoutWithNav>
+                  <ClientaDetalle />
                 </LayoutWithNav>
               </RequireAdmin>
             }
