@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Servicios from './pages/Servicios';
 import MisCitas from './pages/MisCitas';
+import MiCitaDetalle from './pages/CitaDetalle';
 import Referidos from './pages/Referidos';
 import Premios from './pages/Premios';
 import AdminDashboard from './pages/admin/Dashboard';
@@ -16,6 +17,7 @@ import ClientaDetalle from './pages/admin/ClientaDetalle';
 import AdminCitas from './pages/admin/Citas';
 import AdminNuevaCita from './pages/admin/NuevaCita';
 import AdminEditarCita from './pages/admin/EditarCita';
+import AdminCitaDetalle from './pages/admin/CitaDetalle';
 import AdminServicios from './pages/admin/Servicios';
 import AdminPremios from './pages/admin/Premios';
 
@@ -60,6 +62,16 @@ function App() {
               <RequireAuth>
                 <LayoutWithNav>
                   <MisCitas />
+                </LayoutWithNav>
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/cita/:id"
+            element={
+              <RequireAuth>
+                <LayoutWithNav>
+                  <MiCitaDetalle />
                 </LayoutWithNav>
               </RequireAuth>
             }
@@ -131,6 +143,16 @@ function App() {
               <RequireAdmin>
                 <LayoutWithNav>
                   <AdminEditarCita />
+                </LayoutWithNav>
+              </RequireAdmin>
+            }
+          />
+          <Route
+            path="/admin/citas/:id"
+            element={
+              <RequireAdmin>
+                <LayoutWithNav>
+                  <AdminCitaDetalle />
                 </LayoutWithNav>
               </RequireAdmin>
             }
