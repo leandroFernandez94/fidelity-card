@@ -17,6 +17,7 @@
     "api:start": "cd backend && bun run start",
     "db:generate": "cd backend && bun run db:generate",
     "db:migrate": "cd backend && bun run db:migrate",
+    "db:reset": "cd backend && bun run db:reset",
     "db:smoke": "cd backend && bun run db:smoke",
     "seed:admin": "cd backend && bun run seed:admin",
     "seed:servicios": "cd backend && bun run seed:servicios",
