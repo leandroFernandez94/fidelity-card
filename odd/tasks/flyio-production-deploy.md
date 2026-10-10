@@ -47,8 +47,8 @@ El proyecto no tiene ambiente de producción. Plataforma decidida (memoria `arch
 ## Progress
 
 - T1 done: rama creada desde origin/master (74e44c0).
-- T2+T3 done: commit b43eb48 (writer delegado; verificación: TOML OK via tomllib, lint 0 errores antes/después, read-back completo; review assess = medium por .atl auto-generado ajeno al cambio; RDD off).
-- Región: `mad` no existe en Fly → `cdg` (commits 0cb611a, 95ee300).
+- T2+T3 done: commit d207d07 (writer delegado; verificación: TOML OK via tomllib, lint 0 errores antes/después, read-back completo; review assess = medium por .atl auto-generado ajeno al cambio; RDD off).
+- Región: `mad` no existe en Fly → `cdg` (commits 92adcb0, 8dec3ec).
 - T4-T6 done: flyctl v0.4.115, auth OK, PG `fidelity-card-db` (cdg, 1 nodo, volume 10GB, user propio del attach), apps creadas, secrets DATABASE_URL+JWT_SECRET, deploys exitosos.
 - T7 done (2026-10-10): SPA 200 (Calixta Lab), /api/health {"ok":true} via proxy, signin OK (cookie session), GET /api/servicios authed 200 [].
 - Deploy URLs: registradas en el dashboard de Fly; no se documentan en artifacts públicos.
@@ -59,3 +59,5 @@ El proyecto no tiene ambiente de producción. Plataforma decidida (memoria `arch
 
 - T2+T3: delegated writer (3 archivos no triviales, trigger writer).
 - T4-T7: inline bash (per-action, estado remoto autorizado por el usuario via issue + respuestas).
+
+- Historia reescrita con filter-branch (aprobado por el usuario) para eliminar del PR la credencial muerta, el email y las URLs: 2 pasadas (la segunda cubrió formas sin https://). Refs locales refs/original limpiadas.
