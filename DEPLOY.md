@@ -2,6 +2,8 @@
 
 Este repositorio se deploya como **dos servicios Docker más una base de datos PostgreSQL**, con un patrón **single-origin**: el frontend (nginx) sirve el build de Vite y proxéa `/api/` al backend. No hay CORS ni URLs absolutas: el navegador solo conoce un dominio.
 
+La plataforma de producción es **Fly.io**: dos apps (`fidelity-card-backend` y `fidelity-card-frontend`) más un **Postgres managed** (`fidelity-card-db`), todo en la región `mad`. El patrón single-origin se conserva: solo el frontend recibe tráfico público y el backend queda en la red interna.
+
 | Servicio | Imagen | Responsabilidad |
 |---|---|---|
 | `frontend` | `frontend/Dockerfile` (multi-stage: Bun build + nginx 1.27) | Sirve la SPA (`/usr/share/nginx/html`), redirige rutas desconocidas a `index.html` (SPA fallback) y proxéa `/api/` al `API_UPSTREAM` |
@@ -34,21 +36,69 @@ El contenedor backend **falla al arrancar si la migración falla** (comando: `bu
 
 El template `frontend/nginx.default.conf.template` se procesa con `envsubst` al arrancar la imagen oficial de nginx.
 
-## Railway (ruta principal)
+## Fly.io (ruta principal)
 
-1. Crear un proyecto nuevo en Railway.
-2. **Servicio `backend`**: "Deploy from GitHub repo" → Root Directory: `/` (raíz del repo) → Dockerfile path: `backend/Dockerfile`.
-3. **Servicio `frontend`**: mismo repo → Root Directory: `/` → Dockerfile path: `frontend/Dockerfile`.
-4. **PostgreSQL**: "Add service" → PostgreSQL. Railway expone `DATABASE_URL` en las variables de referencia del servicio.
-5. Variables del servicio `backend`:
-   - `DATABASE_URL` = `${{Postgres.DATABASE_URL}}` (referencia al servicio Postgres de Railway)
-   - `JWT_SECRET` = secreto aleatorio largo (ej. `openssl rand -base64 32`)
-   - `NODE_ENV` = `production` (ya es default del Dockerfile, declararla es opcional)
-6. Variables del servicio `frontend`:
-   - `API_UPSTREAM` = `http://backend.railway.internal:3001` (red privada de Railway; el nombre es el del servicio backend)
-7. **Dominio público**: generarlo SOLO en el servicio `frontend` (Settings → Networking → Generate Domain). El backend queda accesible únicamente por la red privada; todo el tráfico público entra por nginx.
+### Requisitos previos
 
-Auto-deploy: por default Railway reconstruye y redeploya ambos servicios en cada push a la branch configurada (Settings → Source → Branch). Para staging y producción usá **dos proyectos Railway separados** apuntando a branches distintas del mismo repo (ej. `main` → producción, `staging` → staging), cada uno con su propio PostgreSQL y su propio `JWT_SECRET`.
+- flyctl instalado y sesión iniciada:
+
+```bash
+curl -L https://fly.io/install.sh | sh
+fly auth login
+```
+
+### 1. Postgres managed
+
+Crear la base gestionada (región `mad`, un solo nodo para mantener el costo):
+
+```bash
+fly postgres create --name fidelity-card-db --region mad --initial-cluster-size 1 --vm-size shared-cpu-1x
+```
+
+### 2. Crear las apps
+
+```bash
+fly apps create fidelity-card-backend
+fly apps create fidelity-card-frontend
+```
+
+Ambas apps deben pertenecer a la **misma org**: el DNS interno `.internal` de Fly solo resuelve dentro de ella.
+
+### 3. Conectar la base y los secrets
+
+```bash
+fly postgres attach fidelity-card-db --app fidelity-card-backend
+fly secrets set -a fidelity-card-backend JWT_SECRET="$(openssl rand -base64 32)"
+```
+
+- `fly postgres attach` configura `DATABASE_URL` como secret del backend.
+- `API_UPSTREAM` del frontend **no es secret**: vive en `fly.frontend.toml` (`[env]`).
+
+### 4. Deploy (desde la raíz del repo, siempre)
+
+```bash
+fly deploy -c fly.backend.toml
+fly deploy -c fly.frontend.toml
+```
+
+- Las migraciones de Drizzle corren al boot del contenedor backend; el healthcheck (`/api/health`) tiene 60 s de gracia para cubrirlas.
+- **Advertencia**: los Dockerfiles requieren el contexto de build en la raíz del repo; los comandos con `-c` deben ejecutarse desde la raíz.
+
+### 5. Smoke test
+
+```bash
+curl <frontend-url>/api/health   # {"ok":true}
+```
+
+Abrir <frontend-url> y loguearse.
+
+### 6. Dominio propio (futuro)
+
+```bash
+fly certs add tudominio.com -a fidelity-card-frontend
+```
+
+El comando muestra los registros DNS (CNAME/AAAA) que hay que crear. No requiere redeploy.
 
 ## Coolify / VPS (alternativa)
 
