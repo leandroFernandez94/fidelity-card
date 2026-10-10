@@ -87,10 +87,10 @@ fly deploy -c fly.frontend.toml
 ### 5. Smoke test
 
 ```bash
-curl <frontend-url>/api/health   # {"ok":true}
+curl https://<frontend-app>.fly.dev/api/health   # {"ok":true}
 ```
 
-Abrir <frontend-url> y loguearse.
+Abrir `https://<frontend-app>.fly.dev` y loguearse.
 
 ### 6. Dominio propio (futuro)
 
