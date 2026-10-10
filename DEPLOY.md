@@ -2,7 +2,7 @@
 
 Este repositorio se deploya como **dos servicios Docker más una base de datos PostgreSQL**, con un patrón **single-origin**: el frontend (nginx) sirve el build de Vite y proxéa `/api/` al backend. No hay CORS ni URLs absolutas: el navegador solo conoce un dominio.
 
-La plataforma de producción es **Fly.io**: dos apps (`fidelity-card-backend` y `fidelity-card-frontend`) más un **Postgres managed** (`fidelity-card-db`), todo en la región `mad`. El patrón single-origin se conserva: solo el frontend recibe tráfico público y el backend queda en la red interna.
+La plataforma de producción es **Fly.io**: dos apps (`fidelity-card-backend` y `fidelity-card-frontend`) más un **Postgres managed** (`fidelity-card-db`), todo en la región `cdg`. El patrón single-origin se conserva: solo el frontend recibe tráfico público y el backend queda en la red interna.
 
 | Servicio | Imagen | Responsabilidad |
 |---|---|---|
@@ -49,7 +49,7 @@ fly auth login
 
 ### 1. Postgres managed
 
-Crear la base gestionada (región `mad`, un solo nodo para mantener el costo):
+Crear la base gestionada (región `cdg`, un solo nodo para mantener el costo):
 
 ```bash
 fly postgres create --name fidelity-card-db --region cdg --initial-cluster-size 1 --vm-size shared-cpu-1x
