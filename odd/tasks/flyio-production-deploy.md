@@ -14,7 +14,7 @@ El proyecto no tiene ambiente de producción. Plataforma decidida (memoria `arch
 
 - App names: `fidelity-card-backend` / `fidelity-card-frontend` (DNS interno: `http://fidelity-card-backend.internal:3001`).
 - Dominio: hostnames `.fly.dev` gratuitos ahora; dominio propio via `fly certs` después.
-- Región: España o cerca → `mad` (Madrid); verificar disponibilidad con CLI, fallback `cdg` (París).
+- Región: España o cerca → `cdg` (París, la región Fly más cercana a España; `mad` no existe en Fly).
 - flyctl NO estaba instalado (verificado): instalar en esta sesión.
 
 ## Constraints
@@ -28,11 +28,11 @@ El proyecto no tiene ambiente de producción. Plataforma decidida (memoria `arch
 
 ## Tasks
 
-- [ ] T1: Rama `feat/flyio-production-deploy` desde origin/master
-- [ ] T2: `fly.backend.toml` + `fly.frontend.toml` (region mad, machines shared-cpu-1x 256MB, healthchecks, grace para migraciones)
-- [ ] T3: DEPLOY.md — reemplazar sección Railway por Fly.io como ruta principal (mantener Coolify/VPS alternativa + smoke local)
+- [x] T1: Rama `feat/flyio-production-deploy` desde origin/master
+- [x] T2: `fly.backend.toml` + `fly.frontend.toml` (region mad, machines shared-cpu-1x 256MB, healthchecks, grace para migraciones)
+- [x] T3: DEPLOY.md — reemplazar sección Railway por Fly.io como ruta principal (mantener Coolify/VPS alternativa + smoke local)
 - [ ] T4: Instalar flyctl + `fly auth login` (usuario completa browser auth)
-- [ ] T5: `fly postgres create` (region mad) + attach a backend → DATABASE_URL
+- [ ] T5: `fly postgres create` (region cdg) + attach a backend → DATABASE_URL
 - [ ] T6: `fly apps create` x2 + `fly secrets set JWT_SECRET` + deploy x2
 - [ ] T7: Smoke test: SPA en frontend.fly.dev + `GET /api/health` via proxy + login
 - [ ] T8: Commit(s) work-unit + PR + comentario en issue #69
@@ -47,6 +47,7 @@ El proyecto no tiene ambiente de producción. Plataforma decidida (memoria `arch
 ## Progress
 
 - T1 done: rama creada desde origin/master (74e44c0).
+- T2+T3 done: commit b43eb48 (writer delegado; verificación: TOML OK via tomllib, lint 0 errores antes/después, read-back completo; review assess = medium por .atl auto-generado ajeno al cambio; RDD off).
 
 ## Route evidence
 

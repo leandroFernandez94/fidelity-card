@@ -3,7 +3,7 @@
 # El contexto de build es el directorio actual (raíz), requerido por frontend/Dockerfile.
 
 app = "fidelity-card-frontend"
-primary_region = "mad"
+primary_region = "cdg"
 
 [build]
   dockerfile = "frontend/Dockerfile"

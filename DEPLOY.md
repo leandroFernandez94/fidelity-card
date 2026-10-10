@@ -52,7 +52,7 @@ fly auth login
 Crear la base gestionada (región `mad`, un solo nodo para mantener el costo):
 
 ```bash
-fly postgres create --name fidelity-card-db --region mad --initial-cluster-size 1 --vm-size shared-cpu-1x
+fly postgres create --name fidelity-card-db --region cdg --initial-cluster-size 1 --vm-size shared-cpu-1x
 ```
 
 ### 2. Crear las apps
