@@ -35,7 +35,7 @@ El proyecto no tiene ambiente de producción. Plataforma decidida (memoria `arch
 - [x] T5: `fly postgres create` (region cdg) + attach a backend → DATABASE_URL (secrets staged)
 - [x] T6: `fly apps create` x2 + `fly secrets set JWT_SECRET` + deploy x2
 - [x] T7: Smoke test: SPA en frontend.fly.dev + `GET /api/health` via proxy + login
-- [ ] T8: Push + PR + comentario en issue #69
+- [x] T8: Push + PR + comentario en issue #69 — PR #70, comentario https://github.com/leandroFernandez94/fidelity-card/issues/69#issuecomment-6097365506. Verificación pre-PR: tsc -b 0 errores, 36/36 tests backend, lint 0.
 
 ## Verification
 
