@@ -36,7 +36,7 @@ jobs:
           ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Set up flyctl
-        uses: superfly/flyctl-actions/setup-flyctl@v3
+        uses: superfly/flyctl-actions/setup-flyctl@v1
 
       - name: Deploy backend (migrations run at boot)
         run: flyctl deploy -c fly.backend.toml --token ${{ secrets.FLY_API_TOKEN_BACKEND }}
