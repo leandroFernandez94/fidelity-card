@@ -32,6 +32,7 @@ El contenedor backend **falla al arrancar si la migración falla** (comando: `bu
 | Variable | Obligatoria | Notas |
 |---|---|---|
 | `API_UPSTREAM` | Sí (tiene default `http://backend:3001`) | URL del backend **sin barra final**. nginx proxéa `/api/health` → `${API_UPSTREAM}/api/health` sin reescribir el path |
+| `ALLOWED_HOST` | Sí (sin default) | Host único para el que nginx sirve la SPA; cualquier otro Host recibe `421`. En Fly va como **secret** (ver §3), en staging/local se define explícito (`localhost`) |
 | `PORT` | No (default 80) | Puerto donde escucha nginx. Útil en plataformas que inyectan su propio `PORT` |
 
 El template `frontend/nginx.default.conf.template` se procesa con `envsubst` al arrancar la imagen oficial de nginx.
@@ -69,9 +70,11 @@ Ambas apps deben pertenecer a la **misma org**: el DNS interno `.internal` de Fl
 ```bash
 fly postgres attach fidelity-card-db --app fidelity-card-backend
 fly secrets set -a fidelity-card-backend JWT_SECRET="$(openssl rand -base64 32)"
+fly secrets set -a fidelity-card-frontend ALLOWED_HOST=<tu-dominio>
 ```
 
 - `fly postgres attach` configura `DATABASE_URL` como secret del backend.
+- `ALLOWED_HOST` del frontend va como **secret** porque el repo es público: el dominio real nunca debe aterrizar en un archivo versionado. El nginx solo sirve ese Host y responde `421` a cualquier otro (ver §6).
 - `API_UPSTREAM` del frontend **no es secret**: vive en `fly.frontend.toml` (`[env]`).
 
 ### 4. Deploy (desde la raíz del repo, siempre)
@@ -87,18 +90,48 @@ fly deploy -c fly.frontend.toml
 ### 5. Smoke test
 
 ```bash
-curl https://<frontend-app>.fly.dev/api/health   # {"ok":true}
+fly status -a fidelity-card-frontend   # machine healthy = check de /api/health en verde
+fly logs -a fidelity-card-frontend     # sin errores de nginx ni de envsubst
 ```
 
-Abrir `https://<frontend-app>.fly.dev` y loguearse.
+El hostname de la app en Fly solo responde en `/api/health`; todo lo demás da `421` por diseño (ver §6). El smoke test completo de la SPA (login, rutas) se hace sobre el dominio propio una vez configurado, o en local (ver "Local (build y smoke test)").
 
-### 6. Dominio propio (futuro)
+### 6. Dominio propio (Cloudflare)
+
+El frontend corre detrás del proxy de Cloudflare (nube naranja). El nginx solo sirve el Host de `ALLOWED_HOST`; el hostname de Fly queda limitado al healthcheck (`/api/health`) y todo lo demás responde `421`, así nadie bypasea Cloudflare pegando directo a Fly.
+
+1. Agregar el certificado:
 
 ```bash
-fly certs add tudominio.com -a fidelity-card-frontend
+fly certs add <tu-dominio> -a fidelity-card-frontend
 ```
 
-El comando muestra los registros DNS (CNAME/AAAA) que hay que crear. No requiere redeploy.
+2. Verificar la propiedad del dominio:
+
+```bash
+fly certs setup <tu-dominio>
+```
+
+   Muestra un registro TXT `_fly-ownership`; crearlo en Cloudflare tal cual lo imprime. Es requerido para emitir el certificado a través del proxy de Cloudflare.
+
+3. Apuntar el tráfico: crear los registros **A y AAAA** de la app en Cloudflare (los muestra `fly certs add`) con el **proxy naranja activado**.
+
+4. SSL/TLS en modo **Full (strict)**. Flexible genera redirect loops (Fly ya termina TLS con su cert y el nginx espera un solo origen público).
+
+5. Activar **Always Use HTTPS**.
+
+6. Verificar la emisión:
+
+```bash
+fly certs check <tu-dominio>
+```
+
+7. Reglas de cache en Cloudflare:
+   - `/api/*` → **Bypass cache** (respuestas dinámicas).
+   - `/assets/*` → **Eligible for cache** (respeta los headers del origen; el nginx ya manda `immutable, max-age=31536000`).
+   - El HTML no se cachea por defecto.
+
+   Nota clave: **no hace falta purgar cache en deploys**. Vite hashea los nombres de los assets y el HTML viaja con `Cache-Control: no-cache`; la invalidación es el cambio de nombre — el nuevo HTML referencia assets nuevos y los viejos expiran solos.
 
 ## Coolify / VPS (alternativa)
 
@@ -136,6 +169,7 @@ docker rm -f fidelity-smoke
 docker run --rm -d --name fidelity-fe-smoke -p 8080:80 \
   --add-host=host.docker.internal:host-gateway \
   -e API_UPSTREAM=http://host.docker.internal:3001 \
+  -e ALLOWED_HOST=localhost \
   fidelity-frontend:dev
 
 curl -fsS http://localhost:8080/              # HTML del index
