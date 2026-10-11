@@ -43,3 +43,6 @@ package-lock.json
 *.njsproj
 *.sln
 *.sw?
+
+# Tooling local (gentle-ai skill registry) — no versionar
+.atl/
