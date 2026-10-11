@@ -19,14 +19,12 @@
     "db:migrate": "cd backend && bun run db:migrate",
     "db:reset": "cd backend && bun run db:reset",
     "db:smoke": "cd backend && bun run db:smoke",
-    "seed:admin": "cd backend && bun run seed:admin",
-    "seed:servicios": "cd backend && bun run seed:servicios",
-    "seed:clientas": "cd backend && bun run seed:clientas",
-    "seed:premios": "cd backend && bun run seed:premios",
-    "seed:all": "cd backend && bun run seed:all",
-    "e2e": "playwright test",
-    "e2e:ui": "playwright test --ui",
-    "e2e:headed": "playwright test --headed"
+    "bootstrap:admin": "cd backend && bun run bootstrap:admin",
+    "seed:dev": "cd backend && bun run seed:dev",
+    "seed:test": "cd backend && bun run seed:test",
+    "e2e": "playwright test -c e2e/playwright.config.ts",
+    "e2e:ui": "playwright test --ui -c e2e/playwright.config.ts",
+    "e2e:headed": "playwright test --headed -c e2e/playwright.config.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
