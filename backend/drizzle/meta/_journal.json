@@ -50,6 +50,13 @@
       "when": 1791733136834,
       "tag": "0006_premios_baseline",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791740993378,
+      "tag": "0007_premios_catalogo_final",
+      "breakpoints": true
     }
   ]
 }
