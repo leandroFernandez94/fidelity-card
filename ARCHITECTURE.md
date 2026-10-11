@@ -2,6 +2,8 @@
 
 Sistema de gestión de fidelity card para centro de belleza. Monorepo Bun con 3 workspaces: frontend (React + Vite), backend (Elysia + Drizzle) y shared (tipos TypeScript).
 
+> Este documento cubre la arquitectura de la aplicación. La infraestructura de producción (Fly.io + Cloudflare, caching, defensas del borde) se documenta en `ARCHITECTURE-PRODUCTION.md`.
+
 ---
 
 ## Estructura del Proyecto
