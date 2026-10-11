@@ -151,8 +151,7 @@
           "name": "descripcion",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "default": "''"
+          "notNull": false
         },
         "precio": {
           "name": "precio",
@@ -173,8 +172,8 @@
           "notNull": true,
           "default": 10
         },
-        "puntos_precio": {
-          "name": "puntos_precio",
+        "puntos_requeridos": {
+          "name": "puntos_requeridos",
           "type": "integer",
           "primaryKey": false,
           "notNull": false
@@ -511,8 +510,8 @@
           "notNull": true,
           "default": "'comprado'"
         },
-        "puntos_precio_snapshot": {
-          "name": "puntos_precio_snapshot",
+        "puntos_requeridos_snapshot": {
+          "name": "puntos_requeridos_snapshot",
           "type": "integer",
           "primaryKey": false,
           "notNull": false

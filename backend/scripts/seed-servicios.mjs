@@ -5,39 +5,60 @@ import { eq } from 'drizzle-orm';
 
 const SERVICIOS_SEED = [
   {
-    nombre: 'Manicura Rusa',
-    descripcion: 'Técnica de manicura en seco con torno para un acabado perfecto.',
-    precio: 12000,
+    nombre: 'Manicura rusa + semipermanente sin nivelación',
+    codigo: 'MANI_SIN_NIVELACION',
+    precio: 30,
     duracion_min: 60,
-    puntos_otorgados: 10
-  },
-  {
-    nombre: 'Esmaltado Semipermanente',
-    descripcion: 'Color duradero hasta por 21 días con brillo extremo.',
-    precio: 8000,
-    duracion_min: 45,
-    puntos_otorgados: 5
-  },
-  {
-    nombre: 'Kapping Gel',
-    descripcion: 'Refuerzo de uña natural con gel para mayor resistencia.',
-    precio: 15000,
-    duracion_min: 90,
     puntos_otorgados: 15
   },
   {
-    nombre: 'Uñas Esculpidas (Acrílico)',
-    descripcion: 'Extensión de uñas con técnica de acrílico profesional.',
-    precio: 22000,
+    nombre: 'Manicura francesa',
+    codigo: 'MANI_FRANCESA',
+    precio: 35,
+    duracion_min: 90,
+    puntos_otorgados: 17
+  },
+  {
+    nombre: 'Nivelación + semipermanente',
+    codigo: 'NIVELACION_SEMI',
+    precio: 40,
+    duracion_min: 120,
+    puntos_otorgados: 20
+  },
+  {
+    nombre: 'Manicura rusa + refuerzo gel + semipermanente',
+    codigo: 'REFUERZO_GEL_SEMI',
+    precio: 50,
     duracion_min: 120,
     puntos_otorgados: 25
   },
   {
-    nombre: 'Remoción Profesional',
-    descripcion: 'Retirado seguro de materiales anteriores sin dañar la uña natural.',
-    precio: 4000,
-    duracion_min: 30,
-    puntos_otorgados: 2
+    nombre: 'Retiro acrílico/gel + refuerzo + semipermanente',
+    codigo: 'RETIRO_REFUERZO_SEMI',
+    precio: 55,
+    duracion_min: 150,
+    puntos_otorgados: 27
+  },
+  {
+    nombre: 'Pedicura completa + semipermanente',
+    codigo: 'PEDI_COMPLETA_SEMI',
+    precio: 45,
+    duracion_min: 90,
+    puntos_otorgados: 22
+  },
+  {
+    nombre: 'Pedicura sin durezas + semipermanente',
+    codigo: 'PEDI_SIN_DUREZAS_SEMI',
+    precio: 35,
+    duracion_min: 60,
+    puntos_otorgados: 17
+  },
+  {
+    nombre: 'Pedicura completa sin esmaltar',
+    codigo: 'PEDI_COMPLETA_SIN_ESMALTAR',
+    precio: 30,
+    duracion_min: 45,
+    puntos_otorgados: 15
   }
 ];
 
@@ -46,10 +67,10 @@ async function seedServicios() {
   try {
     for (const servicio of SERVICIOS_SEED) {
       const existing = await db.select().from(servicios).where(eq(servicios.nombre, servicio.nombre)).limit(1);
-      
+
       if (existing.length > 0) {
         await db.update(servicios).set({
-          descripcion: servicio.descripcion,
+          codigo: servicio.codigo,
           precio: servicio.precio,
           duracion_min: servicio.duracion_min,
           puntos_otorgados: servicio.puntos_otorgados

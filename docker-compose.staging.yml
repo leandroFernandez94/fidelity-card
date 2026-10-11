@@ -56,8 +56,9 @@ services:
     restart: unless-stopped
     environment:
       API_UPSTREAM: http://backend:3001
-      # Host unico que el nginx sirve en staging; cualquier otro Host recibe 421
-      ALLOWED_HOST: localhost
+      # Host unico que el nginx sirve en staging; cualquier otro Host recibe 421.
+      # Se listan el dominio publico y localhost (acceso local/verificacion).
+      ALLOWED_HOST: calixta.losfernandez.net localhost
     ports:
       - "3002:80"
     depends_on:
