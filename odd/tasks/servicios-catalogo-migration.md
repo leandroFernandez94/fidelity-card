@@ -73,3 +73,5 @@ Ingresar el catalogo real de 8 servicios (precio en EUR, puntos, duracion, codig
 
 - Exploracion delegada (explore agent): esquema, seeds, migraciones, journal mapeados. Hallazgo clave: sin columna codigo, precio en euros (verificado en formatearPrecio), precedente de hand-edit en 0000/0004.
 - Preguntas al usuario resueltas: duraciones (en el file), codigo si, reemplazar dummies si.
+- Work-unit commit: `22b3f3f` en `feature/servicios-catalogo-migration` (desde master b3a5eca). `precios.md` queda untracked (archivo fuente del usuario).
+- Entregado: faltan push/PR (decision del usuario bajo politica ordinaria).
