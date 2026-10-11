@@ -91,7 +91,7 @@ Por qué la excepción de `/api/health`: el healthcheck interno de Fly llega con
 - [ ] `curl -I https://<tu-dominio>/` → `200` + `cache-control: no-cache` + `cf-cache-status: DYNAMIC`
 - [ ] `curl -I https://<tu-dominio>/assets/<hash>.js` dos veces → `MISS` y luego `HIT`, con `immutable`
 - [ ] `curl https://<tu-dominio>/api/health` → `{"ok":true}`
-- [ ] `curl https://fidelity-card-frontend.fly.dev/` → `421` (idem `/assets/*`)
+- [ ] `curl` directo al hostname público del app (`<app>.fly.dev`, bypaseando Cloudflare) → `421` (idem `/assets/*`)
 - [ ] `fly status` en ambas apps → checks passing
 
 ## Siguiente paso
