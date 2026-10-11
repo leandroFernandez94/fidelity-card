@@ -18,10 +18,10 @@ test.describe('Flujos de Administrador', () => {
     // o asumir que el primer usuario registrado es el que usamos.
     // NOTA: En un entorno real, usaríamos storageState para estar ya logueados.
     
-    // Login como admin (usando credenciales que deberían existir o crearse)
+    // Login como admin (credenciales inyectadas por el global-setup, con fallback de dev)
     await page.goto(`${baseURL}/login`);
-    await page.getByLabel('Email').fill('admin@test.com'); // Asumiendo credenciales de dev
-    await page.getByLabel('Contraseña').fill('admin123');
+    await page.getByLabel('Email').fill(process.env.ADMIN_EMAIL || 'admin@test.com');
+    await page.getByLabel('Contraseña').fill(process.env.ADMIN_PASSWORD || 'admin123');
     await page.getByRole('button', { name: 'Iniciar Sesión' }).click();
 
     // Navegar a Gestión de Servicios

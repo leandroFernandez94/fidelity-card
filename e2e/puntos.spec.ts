@@ -3,8 +3,9 @@ import { test, expect } from '@playwright/test';
 const baseURL = 'http://localhost:5173';
 
 test.describe('Puntos y Canje de Servicios', () => {
-  const adminEmail = 'admin@test.com';
-  const adminPassword = 'admin123';
+  // Credenciales inyectadas por el global-setup, con fallback de dev
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@test.com';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
   const servicioCorte = `Corte Test ${Date.now()}`;
   const servicioManicura = `Manicura Test ${Date.now()}`;
 
