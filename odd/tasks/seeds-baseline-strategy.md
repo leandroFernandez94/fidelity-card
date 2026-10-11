@@ -42,7 +42,7 @@ Separar datos en dos canales: **baseline** (migración premios + bootstrap admin
 - [x] T6: `globalSetup` Playwright + specs con credenciales de env
 - [x] T7: Docs: AGENTS.md (seeds/tests, ruta migraciones)
 - [x] T8: Verificación local: db:reset → db:migrate → bootstrap:admin → seed:test → vitest backend → e2e → lint
-- [ ] T9: Push + PR + comentario en issue #79
+- [x] T9: Push + PR + comentario en issue #79 — PR #80 (labels `type:feature` + `size:exception`, mantenedor aprobó PR único), checks CI en verde, comentario https://github.com/leandroFernandez94/fidelity-card/issues/79#issuecomment-6111488007
 - [ ] T10: (Operacional, requiere autorización) reset staging + `fly secrets set ADMIN_EMAIL/ADMIN_PASSWORD` + redeploy
 
 ## Verification
