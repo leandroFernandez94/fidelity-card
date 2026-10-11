@@ -15,4 +15,4 @@ ENV NODE_ENV=production
 EXPOSE 3001
 
 # exec deja a bun como PID 1 para que reciba SIGTERM del orquestador
-CMD ["sh", "-c", "cd backend && bun run db:migrate && exec bun src/index.ts"]
+CMD ["sh", "-c", "cd backend && bun run db:migrate && bun run bootstrap:admin && exec bun src/index.ts"]

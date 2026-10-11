@@ -12,12 +12,15 @@ Guia para agentes de codigo en este repositorio. Resume comandos, estilo y regla
 - Preview build: `bun --cwd frontend run preview`
 - Lint: `bun run lint`
 - DB migraciones: `bun run db:generate` y `bun run db:migrate`
-- Reset DB (trunca todas las tablas): `bun run db:reset`
-- Seed datos: `bun run seed:all` (o scripts individuales)
+- Reset DB (trunca todas las tablas, solo bases locales): `bun run db:reset`
+- Bootstrap admin (usa `ADMIN_EMAIL`/`ADMIN_PASSWORD` de env): `bun run bootstrap:admin`
+- Datos dev (admin + fixtures de test): `bun run seed:dev`
+- Fixtures solo para tests/E2E: `bun run seed:test`
 
 ## Tests
 
 - Playwright configurado para E2E tests (root `e2e/`)
+- E2E autocontenido: `global-setup` resetea la DB, aplica migraciones (traen el baseline de datos) y carga admin + fixtures. Correr `bun run e2e` sin pasos manuales previos
 - Vitest configurado para backend tests (`backend/src/__tests__/`)
 - No hay framework de tests para frontend unit tests
 
@@ -29,8 +32,9 @@ Guia para agentes de codigo en este repositorio. Resume comandos, estilo y regla
 - `api:dev`: inicia solo backend
 - `db:generate`: genera migraciones Drizzle
 - `db:migrate`: ejecuta migraciones Drizzle
-- `seed:all`: ejecuta todos los scripts de seed
-- `seed:admin`, `seed:servicios`, `seed:clientas`, `seed:premios`: scripts individuales
+- `bootstrap:admin`: crea/asegura el usuario admin desde `ADMIN_EMAIL`/`ADMIN_PASSWORD`
+- `seed:dev`: admin + fixtures de test
+- `seed:test`: fixtures solo para tests/E2E
 - `e2e`: ejecuta tests E2E con Playwright
 - `e2e:ui`: abre la UI de Playwright para ejecutar tests interactivamente
 - `e2e:headed`: ejecuta tests con navegador visible
@@ -171,7 +175,7 @@ fidelity-card/
 ## Base de datos
 
 - Postgres local via `docker-compose.yml`
-- Migraciones en `apps/api/drizzle/`
+- Migraciones en `backend/drizzle/` (el baseline de servicios/premios llega por migracion)
 
 ## MCPs disponibles
 
