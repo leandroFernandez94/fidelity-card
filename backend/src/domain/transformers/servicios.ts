@@ -5,6 +5,7 @@ import { asIsoString } from './iso';
 export function toPublicServicio(row: {
   id: string;
   nombre: string;
+  codigo: string | null;
   descripcion: string | null;
   precio: number;
   duracion_min: number;
@@ -15,6 +16,7 @@ export function toPublicServicio(row: {
   return {
     id: row.id,
     nombre: row.nombre,
+    codigo: row.codigo,
     descripcion: row.descripcion || '',
     precio: row.precio,
     duracion_min: row.duracion_min,

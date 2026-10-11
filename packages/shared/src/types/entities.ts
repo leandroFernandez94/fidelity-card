@@ -14,6 +14,7 @@ export interface Profile {
 export interface Servicio {
   id: string;
   nombre: string;
+  codigo: string | null;
   descripcion: string | null;
   precio: number;
   duracion_min: number;
