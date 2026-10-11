@@ -29,8 +29,8 @@ async function bootstrapAdmin() {
         .returning();
       await tx.insert(profiles).values({
         id: user.id,
-        nombre: 'Admin',
-        apellido: 'Test',
+        nombre: 'Calixta',
+        apellido: 'Admin',
         telefono: '00000000',
         email,
         rol: 'admin',
@@ -52,8 +52,8 @@ async function bootstrapAdmin() {
     if (!profile) {
       await tx.insert(profiles).values({
         id: existing.id,
-        nombre: 'Admin',
-        apellido: 'Test',
+        nombre: 'Calixta',
+        apellido: 'Admin',
         telefono: '00000000',
         email,
         rol: 'admin',
