@@ -61,3 +61,12 @@ El proyecto no tiene ambiente de producción. Plataforma decidida (memoria `arch
 - T4-T7: inline bash (per-action, estado remoto autorizado por el usuario via issue + respuestas).
 
 - Historia reescrita con filter-branch (aprobado por el usuario) para eliminar del PR la credencial muerta, el email y las URLs: 2 pasadas (la segunda cubrió formas sin https://). Refs locales refs/original limpiadas.
+
+## Fase Cloudflare + anti-DDoS (2026-10-11)
+
+- Dominio propio conectado via CF proxy (naranja): cert LE emitido via TXT _fly-ownership; DNS A/AAAA proxied; Full (strict).
+- nginx: host-guard (solo ALLOWED_HOST sirve el sitio; fly.dev limitado a /api/health; resto 421). ALLOWED_HOST via fly secret (repo publico).
+- HTML con no-cache; assets immutable 1y; verificado cf-cache MISS→HIT.
+- Descubrimiento: el healthcheck de Fly NO usa el hostname de la app como Host (cae en default_server) → /api/health responde en cualquier Host; todo lo demas 421.
+- Realidad verificada: scanners encontraron el dominio en <1h via logs publicos de certificados (crt.sh); CF absorbio todo.
+- Commits: c888476 (guard) + fix default-server healthcheck.
